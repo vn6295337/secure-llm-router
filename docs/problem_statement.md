@@ -28,22 +28,27 @@ A successful solution will demonstrate:
    - `GET /health` - Health check returning system status
    - `POST /query` - LLM query endpoint accepting prompt and parameters
 
-2. **Multi-provider LLM cascade**:
+2. **Security features** (differentiator from poc-rag):
+   - API key authentication (X-API-Key header)
+   - Rate limiting (10 requests/minute per client)
+   - Input validation with Pydantic constraints
+
+3. **Multi-provider LLM cascade**:
    - Primary: Gemini (15 RPM free tier)
    - Fallback 1: Groq (30 RPM free tier, fastest)
    - Fallback 2: OpenRouter (free models available)
 
-3. **Deployed on free-tier platform**:
+4. **Deployed on free-tier platform**:
    - Hugging Face Spaces (16GB RAM, Docker support)
    - Public URL accessible
    - Zero monthly cost
 
-4. **Performance targets**:
+5. **Performance targets**:
    - Response time < 10s per query
    - 99%+ uptime through provider redundancy
    - Cold start < 60s
 
-5. **Developer experience**:
+6. **Developer experience**:
    - Clear documentation
    - Simple local setup
    - Cross-platform compatibility
@@ -54,9 +59,11 @@ A successful solution will demonstrate:
 - Vector database integration
 - RAG pipeline implementation
 - Streaming responses
-- User authentication/authorization
-- Rate limiting per user
+- Multi-tier authentication (all API keys have equal access)
+- Per-user analytics/logging
 - Persistent storage
-- Logging infrastructure
+- Advanced logging infrastructure
+- CORS configuration (assumes trusted clients)
+- Prompt injection detection (basic sanitization only)
 
-These are intentionally excluded to keep the PoC focused on **deployment and multi-provider orchestration**.
+These are intentionally excluded to keep the PoC focused on **secure REST API design** and **multi-provider orchestration**.

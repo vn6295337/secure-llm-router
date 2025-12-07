@@ -84,6 +84,9 @@ pydantic>=2.0.0
 
 # HTTP client for LLM calls
 requests>=2.31.0
+
+# Security - Rate limiting
+slowapi>=0.1.9
 ```
 
 **Installation:**
@@ -91,7 +94,7 @@ requests>=2.31.0
 pip install -r requirements.txt
 ```
 
-**Total size**: ~50MB (lightweight compared to poc-rag)
+**Total size**: ~55MB (lightweight compared to poc-rag's ~800MB)
 
 ### Development Dependencies (Optional)
 
@@ -166,6 +169,9 @@ exec uvicorn app:app --host 0.0.0.0 --port 7860
 **Purpose**: Template for local development
 
 ```bash
+# Service API Key (for client authentication)
+SERVICE_API_KEY=your-secret-api-key-here
+
 # LLM Provider API Keys (set at least one)
 GEMINI_API_KEY=your_gemini_key_here
 GROQ_API_KEY=your_groq_key_here
@@ -175,6 +181,9 @@ OPENROUTER_API_KEY=your_openrouter_key_here
 GEMINI_MODEL=gemini-2.0-flash-exp
 GROQ_MODEL=llama-3.3-70b-versatile
 OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
+
+# Rate limiting (optional, default: 10/minute)
+RATE_LIMIT=10/minute
 ```
 
 **Security**: Never commit actual `.env` file (add to `.gitignore`)
@@ -185,15 +194,18 @@ OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
 |--------|---------|------------------|
 | **Base image** | python:3.11-slim | python:3.11-slim (same) |
 | **Framework** | Streamlit | FastAPI |
+| **Security** | None | slowapi + API key auth |
 | **Vector DB** | Pinecone | None (not needed) |
 | **Embeddings** | sentence-transformers | None (not needed) |
-| **Dependencies size** | ~800MB | ~50MB |
+| **Dependencies size** | ~800MB | ~55MB |
 | **Build time** | ~5 min | ~2 min |
 | **Deployment** | HF Spaces Docker | HF Spaces Docker (same) |
 | **LLM providers** | Gemini/Groq/OpenRouter | Gemini/Groq/OpenRouter (same) |
 | **Cost** | $0/month | $0/month |
 
-**Key insight**: Much simpler dependency footprint due to no RAG pipeline.
+**Key insights**:
+- Much simpler dependency footprint (no RAG pipeline)
+- Adds security layer (API auth + rate limiting) not present in poc-rag
 
 ## Local Development Workflow
 
@@ -237,13 +249,33 @@ uvicorn app:app --reload --port 8000
 ### Testing
 
 ```bash
-# Health check
+# Health check (no auth required)
 curl http://localhost:8000/health
 
-# Query endpoint
+# Query endpoint (requires API key)
 curl -X POST http://localhost:8000/query \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key-here" \
   -d '{"prompt": "Hello world", "max_tokens": 50, "temperature": 0.7}'
+
+# Test validation error (max_tokens too high)
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key-here" \
+  -d '{"prompt": "Test", "max_tokens": 9999}'
+
+# Test auth error (missing API key)
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Test"}'
+
+# Test rate limiting (run 11 times quickly)
+for i in {1..11}; do
+  curl -X POST http://localhost:8000/query \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: your-secret-api-key-here" \
+    -d '{"prompt": "Test '$i'"}'
+done
 ```
 
 ## Deployment Workflow
@@ -265,6 +297,7 @@ cp -r /path/to/poc-cloud-deploy/* .
 
 # 4. Configure secrets in HF Spaces UI
 #    - Go to Space settings → Repository secrets
+#    - Add: SERVICE_API_KEY (for client authentication)
 #    - Add: GEMINI_API_KEY (or GROQ_API_KEY or OPENROUTER_API_KEY)
 
 # 5. Deploy

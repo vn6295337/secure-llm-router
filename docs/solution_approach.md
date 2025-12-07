@@ -22,13 +22,25 @@ FastAPI service with two primary endpoints:
 | ASGI Server | Uvicorn | Production-grade async server |
 | LLM Providers | Gemini → Groq → OpenRouter | Multi-provider cascade (reuse from poc-rag) |
 | Configuration | python-dotenv + config.py | Environment-based secrets management |
+| Security | slowapi + API key auth | Rate limiting and access control |
 | Deployment | Hugging Face Spaces (Docker) | Free tier, 16GB RAM, proven success with poc-rag |
 | Container | Python 3.11-slim | Lightweight, cross-platform compatibility |
 
 ## Data Flow
 
 ```
-Client Request (POST /query)
+Client Request (POST /query with X-API-Key header)
+        |
+        v
++------------------+
+| API Key Auth     |  Validate X-API-Key header
++------------------+
+        |
+        v
++------------------+
+| Rate Limiter     |  Check per-client request quota
+| (slowapi)        |  Return 429 if exceeded
++------------------+
         |
         v
 +------------------+
@@ -95,12 +107,15 @@ GET /health
 }
 ```
 
+**Note**: Health check does NOT require authentication (public monitoring endpoint).
+
 ### Endpoint 2: LLM Query
 
 **Request:**
 ```http
 POST /query
 Content-Type: application/json
+X-API-Key: your-api-key-here
 
 {
   "prompt": "Explain quantum computing in one sentence",
@@ -109,7 +124,7 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+**Response (Success):**
 ```json
 {
   "response": "Quantum computing uses quantum mechanics principles...",
@@ -119,7 +134,34 @@ Content-Type: application/json
 }
 ```
 
-**Error Response:**
+**Response (Validation Error):**
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "max_tokens"],
+      "msg": "ensure this value is less than or equal to 2048",
+      "type": "value_error.number.not_le"
+    }
+  ]
+}
+```
+
+**Response (Authentication Error):**
+```json
+{
+  "detail": "Invalid or missing API key"
+}
+```
+
+**Response (Rate Limit Exceeded):**
+```json
+{
+  "error": "Rate limit exceeded: 10 per 1 minute"
+}
+```
+
+**Response (LLM Provider Failure):**
 ```json
 {
   "response": null,
@@ -147,9 +189,11 @@ Content-Type: application/json
 |--------|---------|------------------|
 | Interface | Streamlit UI | REST API (FastAPI) |
 | Complexity | 5 components (RAG pipeline) | 2 endpoints (simple router) |
-| Primary skill | RAG architecture | REST API design |
-| Use case | Document Q&A | LLM service integration |
-| Dependencies | sentence-transformers, Pinecone, Streamlit | FastAPI, uvicorn only |
+| Primary skill | RAG architecture | **Secure REST API design** |
+| Security | None (public UI) | **API key auth + rate limiting** |
+| Input validation | Streamlit widgets | **Pydantic models with constraints** |
+| Use case | Document Q&A | **LLM service integration with access control** |
+| Dependencies | sentence-transformers, Pinecone, Streamlit | FastAPI, uvicorn, slowapi |
 
 ## Performance Targets
 
@@ -160,18 +204,104 @@ Content-Type: application/json
 
 ## Error Handling
 
-1. **Input validation**: Pydantic models reject malformed requests
-2. **Provider failures**: Automatic cascade to next provider
-3. **All providers fail**: Return error response with 500 status
-4. **Missing API keys**: Startup validation prevents deployment
-5. **Rate limits**: Return 429 status (no retry logic in PoC)
+1. **Input validation**: Pydantic models reject malformed requests (returns 422 with details)
+2. **Authentication failures**: Missing/invalid API key (returns 401)
+3. **Rate limit exceeded**: Client exceeded quota (returns 429)
+4. **Provider failures**: Automatic cascade to next provider
+5. **All providers fail**: Return error response with 500 status
+6. **Missing API keys**: Startup validation prevents deployment
+
+## Security Implementation
+
+### 1. API Key Authentication
+
+**Implementation:**
+```python
+from fastapi import Security, HTTPException
+from fastapi.security import APIKeyHeader
+
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+async def validate_api_key(api_key: str = Security(api_key_header)):
+    if api_key != os.getenv("SERVICE_API_KEY"):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    return api_key
+```
+
+**Configuration:**
+- Set `SERVICE_API_KEY` environment variable
+- Clients pass via `X-API-Key` header
+- Health check endpoint bypasses auth (public)
+
+**Benefits:**
+- Simple access control
+- No database required
+- Demonstrates security fundamentals
+
+### 2. Rate Limiting (slowapi)
+
+**Implementation:**
+```python
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.post("/query")
+@limiter.limit("10/minute")
+async def query_llm(...):
+    ...
+```
+
+**Configuration:**
+- 10 requests per minute per client IP
+- Configurable via environment variable
+- Returns 429 with retry-after header
+
+**Benefits:**
+- Prevents abuse
+- Protects LLM provider quotas
+- Production-ready pattern
+
+### 3. Input Validation (Pydantic)
+
+**Implementation:**
+```python
+from pydantic import BaseModel, Field
+
+class QueryRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=4000)
+    max_tokens: int = Field(256, ge=1, le=2048)
+    temperature: float = Field(0.7, ge=0.0, le=2.0)
+```
+
+**Constraints:**
+- Prompt: 1-4000 characters
+- max_tokens: 1-2048 (prevents excessive costs)
+- temperature: 0.0-2.0 (LLM parameter range)
+
+**Benefits:**
+- Automatic validation
+- Clear error messages
+- API contract enforcement
 
 ## Security Considerations
 
-- **API Keys**: Environment variables only (never hardcoded)
-- **CORS**: Not configured (PoC assumes trusted clients)
-- **Rate limiting**: Not implemented (rely on provider limits)
-- **Authentication**: Not implemented (PoC is public)
+**Implemented:**
+- ✅ **API Key Authentication**: X-API-Key header validation
+- ✅ **Rate Limiting**: 10 req/min per client IP (slowapi)
+- ✅ **Input Validation**: Pydantic constraints on all parameters
+- ✅ **LLM API Keys**: Environment variables only (never hardcoded)
+
+**Not Implemented (PoC scope):**
+- CORS configuration (assumes trusted clients)
+- HTTPS enforcement (HF Spaces handles TLS)
+- Request logging / audit trail
+- Multi-tier API keys (all keys have equal access)
+- Prompt injection detection (basic sanitization only)
 
 ## Non-Goals (Intentionally Excluded)
 
