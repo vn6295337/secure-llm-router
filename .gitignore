@@ -10,5 +10,9 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+.gemini/
+.obsidian/
 # System
 *.log
+# Supabase (not needed for LLM API)
+supabase/
