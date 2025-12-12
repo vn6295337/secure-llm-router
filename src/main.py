@@ -315,7 +315,7 @@ DASHBOARD_HTML = """
 
             <div class="flex flex-col h-full">
               <div class="text-xs small-muted mb-1">Humanized Log</div>
-              <div id="log" aria-live="polite" class="flex-1 overflow-auto p-2 rounded bg-slate-900 border border-slate-700 text-sm" style="color:#86efac">
+              <div id="log" aria-live="polite" class="flex-1 overflow-auto p-2 rounded bg-slate-900 border border-slate-700 text-sm" style="color:#86efac; white-space: pre-wrap;">
 > System ready.
 > Waiting for input...
               </div>
