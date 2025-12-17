@@ -279,7 +279,7 @@ DASHBOARD_HTML = """
       <!-- Auth Step -->
       <div id="step-auth" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">🔐</span>
+          <span class="text-2xl leading-none flex items-center justify-center">🔑</span>
         </div>
         <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Auth</span>
       </div>
@@ -324,7 +324,7 @@ DASHBOARD_HTML = """
       <!-- Inference Step -->
       <div id="step-llm" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg relative transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">🤖</span>
+          <span class="text-2xl leading-none flex items-center justify-center">⚙</span>
           <div id="active-provider-badge" class="absolute -top-2 -right-2 bg-green-500 text-black text-micro px-1 rounded font-bold hidden">GROQ</div>
         </div>
         <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Inference</span>
