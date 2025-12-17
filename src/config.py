@@ -235,19 +235,20 @@ DASHBOARD_HTML = """
           <h2 class="font-medium text-xs mb-1.5">Try the Gateway: Enter Your Prompt</h2>
 
           <div class="space-y-2">
-            <div class="prompt-wrap">
+            <div class="prompt-wrap prompt-glow">
               <textarea id="input-prompt" class="w-full h-16 focus-ring rounded text-xs p-1.5" placeholder="Ask anything...">Explain quantum computing in simple terms</textarea>
               <div class="token-badge" id="token-counter">~10 tokens</div>
             </div>
 
-            <div class="flex items-center gap-3 text-compact small-muted">
+            <div class="flex items-center gap-3 text-compact small-muted flex-nowrap">
               <span>Max Tokens: <input id="input-max-tokens" type="number" class="focus-ring rounded text-xs p-1 w-16 inline-block" value="256" min="1" max="2048"></span>
               <span>Temperature: <input id="input-temp" type="number" class="focus-ring rounded text-xs p-1 w-16 inline-block" value="0.7" min="0" max="2" step="0.1"></span>
-            </div>
 
-            <button id="execute-custom" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1 px-2 rounded font-medium text-xs">
-              Submit Prompt
-            </button>
+              <button id="execute-custom"
+                      class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded font-medium text-xs">
+                Submit Prompt
+              </button>
+            </div>
 
           </div>
         </div>
