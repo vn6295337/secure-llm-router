@@ -123,7 +123,7 @@ DASHBOARD_HTML = """
       margin: 12px 0;
     }
     .feature-card { text-align: center; padding: 8px; }
-    .feature-icon { font-size: 16px; margin-bottom: 4px; }
+    .feature-icon { font-size: 14px; margin-bottom: 4px; }
 
     /* Metrics HUD: 6 equal columns for maximum information density */
     .metrics-hud {
@@ -186,7 +186,7 @@ DASHBOARD_HTML = """
         </div>
       </div>
       <div class="feature-card card">
-        <div class="feature-icon">Zero Trust Security</div>
+        <div class="feature-icon">Zero-Trust Security</div>
         <div class="grid grid-cols-2 gap-1.5 mt-2">
           <button data-scenario="injection" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 h-12 flex flex-col items-center justify-center leading-tight">
             <span>Attack</span>
@@ -243,25 +243,7 @@ DASHBOARD_HTML = """
               <span>Temperature: <input id="input-temp" type="number" class="focus-ring rounded text-xs p-1 w-16 inline-block" value="0.7" min="0" max="2" step="0.1"></span>
             </div>
 
-            <button id="execute-custom" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1 px-2 rounded font-medium text-xs">
-              Execute Prompt
-            </button>
 
-            <!-- Predefined Scenarios as 2x2 Grid -->
-            <div class="grid grid-cols-2 grid-rows-2 gap-1.5 pt-1 h-24">
-              <button data-scenario="normal" class="card card-button p-1.5 text-compact hover:border-blue-400/30 flex items-center justify-center">
-                <div class="font-medium">✅ Normal Request</div>
-              </button>
-              <button data-scenario="injection" class="card card-button p-1.5 text-compact hover:border-blue-400/30 flex items-center justify-center">
-                <div class="font-medium">🛡️ Injection Attempt</div>
-              </button>
-              <button data-scenario="rate-limit" class="card card-button p-1.5 text-compact hover:border-blue-400/30 flex items-center justify-center">
-                <div class="font-medium">⏱️ Rate Limit Test</div>
-              </button>
-              <button data-scenario="malformed" class="card card-button p-1.5 text-compact hover:border-blue-400/30 flex items-center justify-center">
-                <div class="font-medium">❌ Malformed Input</div>
-              </button>
-            </div>
           </div>
         </div>
       </div>
