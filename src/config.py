@@ -245,6 +245,9 @@ DASHBOARD_HTML = """
               <span>Temperature: <input id="input-temp" type="number" class="focus-ring rounded text-xs p-1 w-16 inline-block" value="0.7" min="0" max="2" step="0.1"></span>
             </div>
 
+            <button id="execute-custom" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1 px-2 rounded font-medium text-xs">
+              Submit Prompt
+            </button>
 
           </div>
         </div>
