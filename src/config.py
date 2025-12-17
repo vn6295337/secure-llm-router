@@ -274,60 +274,60 @@ DASHBOARD_HTML = """
   <div class="w-full flex flex-col items-center justify-center relative z-10 px-4">
     <h2 class="font-mono text-xs text-slate-400 mb-4 tracking-widest uppercase text-center">Request Lifecycle</h2>
 
-    <div class="flex items-center justify-between w-full max-w-3xl px-2">
+    <div class="flex items-start justify-between w-full max-w-3xl px-2" style="align-items: flex-start;">
 
       <!-- Auth Step -->
-      <div id="step-auth" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+      <div id="step-auth" class="flex flex-col items-center justify-start transition-all duration-300 opacity-50" style="width: 80px; height: 78px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">🔑</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 28px; line-height: 1;">🔑</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Auth</span>
+        <span class="uppercase tracking-wider font-semibold text-slate-500" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 16px; font-size: 9px; line-height: 1; text-align: center;">Auth</span>
       </div>
 
       <!-- Connector 1 -->
-      <div class="flex-1 flex items-center justify-center px-3">
+      <div class="flex-1 flex items-center justify-center px-3" style="margin-top: 27px;">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-1"></div>
         </div>
       </div>
 
       <!-- Guardrail Step -->
-      <div id="step-guard" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+      <div id="step-guard" class="flex flex-col items-center justify-start transition-all duration-300 opacity-50" style="width: 80px; height: 78px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">🛡️</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 28px; line-height: 1;">🛡️</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Guardrail</span>
+        <span class="uppercase tracking-wider font-semibold text-slate-500" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 16px; font-size: 9px; line-height: 1; text-align: center;">Guardrail</span>
       </div>
 
       <!-- Connector 2 -->
-      <div class="flex-1 flex items-center justify-center px-3">
+      <div class="flex-1 flex items-center justify-center px-3" style="margin-top: 27px;">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-2"></div>
         </div>
       </div>
 
       <!-- Router Step -->
-      <div id="step-router" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+      <div id="step-router" class="flex flex-col items-center justify-start transition-all duration-300 opacity-50" style="width: 80px; height: 78px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">🔀</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 28px; line-height: 1;">🔀</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Router</span>
+        <span class="uppercase tracking-wider font-semibold text-slate-500" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 16px; font-size: 9px; line-height: 1; text-align: center;">Router</span>
       </div>
 
       <!-- Connector 3 -->
-      <div class="flex-1 flex items-center justify-center px-3">
+      <div class="flex-1 flex items-center justify-center px-3" style="margin-top: 27px;">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-3"></div>
         </div>
       </div>
 
       <!-- Inference Step -->
-      <div id="step-llm" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+      <div id="step-llm" class="flex flex-col items-center justify-start transition-all duration-300 opacity-50" style="width: 80px; height: 78px;">
         <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg relative transition-all duration-300">
-          <span class="text-2xl leading-none flex items-center justify-center">⚙</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 28px; line-height: 1;">⚙</span>
           <div id="active-provider-badge" class="absolute -top-2 -right-2 bg-green-500 text-black text-micro px-1 rounded font-bold hidden">GROQ</div>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Inference</span>
+        <span class="uppercase tracking-wider font-semibold text-slate-500" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 16px; font-size: 9px; line-height: 1; text-align: center;">Inference</span>
       </div>
 
     </div>
