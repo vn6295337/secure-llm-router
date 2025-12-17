@@ -527,10 +527,12 @@ DASHBOARD_HTML = """
         // Solidify the active state
         const iconBox = target.node.querySelector('div');
         iconBox.classList.add('bg-slate-800', 'border-blue-400');
-        
-        // Fill the connecting line to the right
+
+        // Fill the connecting line to the right with delay for proper sequencing
         if (target.line) {
-          target.line.style.width = '100%';
+          setTimeout(() => {
+            target.line.style.width = '100%';
+          }, 400);
         }
       }
 
@@ -734,13 +736,15 @@ DASHBOARD_HTML = """
       for (const step of scenario.steps) {
         updatePipelineVisual(step.id, 'running');
         appendLog(`> ${step.label} ...`);
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 1200));
         const result = step.action();
         if (result.status === 'pass') {
           updatePipelineVisual(step.id, 'pass');
           if (scenario.explain?.pass) addCommentary(scenario.explain.pass);
           appendLog(`> ${step.id.toUpperCase()} -> PASS`);
           lastRunData.steps.push({id: step.id, status: 'pass'});
+          // Allow time for connector line animation to complete
+          await new Promise(r => setTimeout(r, 600));
         } else if (result.status === 'block' || result.status === 'fail') {
           updatePipelineVisual(step.id, 'block');
           // Add appropriate commentary
@@ -772,11 +776,11 @@ DASHBOARD_HTML = """
           // Router completes first
           updatePipelineVisual('router', 'pass');
           appendLog(`> ROUTER: Failover triggered. Finding best provider...`);
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 800));
 
           // Provider starts running
           updatePipelineVisual('provider', 'running');
-          await new Promise(r => setTimeout(r, 600));
+          await new Promise(r => setTimeout(r, 1000));
           
           // Assume successful provider is found (e.g., Groq)
           const activeProvider = result.provider || 'Groq';
@@ -797,7 +801,7 @@ DASHBOARD_HTML = """
             if (provider === 'gemini') lightProvider('gemini', outcome, outcome==='success'?120:0);
             if (provider === 'groq') lightProvider('groq', outcome, outcome==='success'?87:0);
             if (provider === 'openrouter') lightProvider('open', outcome, outcome==='success'?200:0);
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 1400));
             lastRunData.providerPath.push({provider, outcome});
             if (outcome === 'success') {
               lastRunData.provider = provider;
