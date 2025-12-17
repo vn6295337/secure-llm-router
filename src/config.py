@@ -168,14 +168,7 @@ DASHBOARD_HTML = """
     <!-- ===== HIERARCHICAL INFORMATION DENSITY =====
          TIER 1: Compact header with inline status (health, API key)
     -->
-    <header class="grid grid-cols-4 gap-2 items-center mb-2">
-      <div class="col-span-2">
-        <h1 class="text-lg font-semibold">LLM Secure Gateway: An Interactive Demo</h1>
-      </div>
-      <div class="col-span-2 flex items-center gap-2">
-        <span class="text-compact whitespace-nowrap text-white" style="font-size: 12px;">Enter API Key:</span>
-        <input id="input-api" type="password" class="flex-1 focus-ring rounded text-xs px-2 py-0.5" value="secure-demo-ak7x9...">
-      </div>
+    <header class="mb-2">
     </header>
 
     <!-- ===== TIER 2: Horizontal feature cards as status bar (4 equal columns) -->
@@ -257,6 +250,14 @@ DASHBOARD_HTML = """
 
           </div>
         </div>
+
+        <!-- API Key Input -->
+        <div class="card p-2 mt-2">
+          <div class="flex items-center gap-2">
+            <span class="text-compact whitespace-nowrap text-white" style="font-size: 12px;">Enter API Key:</span>
+            <input id="input-api" type="password" class="flex-1 focus-ring rounded text-xs px-2 py-0.5" value="secure-demo-ak7x9...">
+          </div>
+        </div>
       </div>
 
       <!-- REQUEST LIFECYCLE - Pipeline Visualization (50% - 2 columns) -->
@@ -332,21 +333,6 @@ DASHBOARD_HTML = """
             <div id="execution-log" class="bg-slate-900/50 rounded p-1.5 h-24 overflow-y-auto text-compact font-mono">
               <div>> Ready. Select a scenario or enter a custom prompt.</div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Actions (50% - 2 columns) -->
-      <div class="lg:col-span-2">
-        <div class="card p-2">
-          <h2 class="font-medium text-xs mb-1.5">Quick Actions</h2>
-          <div class="grid grid-cols-2 gap-1.5">
-            <button id="download-raw" class="card card-button p-1.5 text-center text-compact hover:border-blue-400/30">
-              📥 Download Raw
-            </button>
-            <button id="copy-snippet" class="card card-button p-1.5 text-center text-compact hover:border-blue-400/30">
-              📋 Copy Snippet
-            </button>
           </div>
         </div>
       </div>
