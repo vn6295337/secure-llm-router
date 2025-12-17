@@ -253,63 +253,63 @@ DASHBOARD_HTML = """
         <div class="card p-2 relative overflow-hidden flex flex-col items-center justify-center">
   <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
   
-  <div class="w-full flex flex-col items-center justify-center relative z-10">
-    <h2 class="font-mono text-xs text-slate-400 mb-3 tracking-widest uppercase text-center">Request Lifecycle</h2>
+  <div class="w-full flex flex-col items-center justify-center relative z-10 px-4">
+    <h2 class="font-mono text-xs text-slate-400 mb-4 tracking-widest uppercase text-center">Request Lifecycle</h2>
 
-    <div class="flex items-start justify-center gap-2 w-full max-w-4xl">
+    <div class="flex items-center justify-between w-full max-w-3xl px-2">
 
       <!-- Auth Step -->
-      <div id="step-auth" class="flex flex-col items-center transition-all duration-300 opacity-50 w-20">
-        <div class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center mb-2 shadow-lg">
-          <span class="text-xl">🔐</span>
+      <div id="step-auth" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+        <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
+          <span class="text-2xl leading-none flex items-center justify-center">🔐</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full h-8 flex items-center justify-center">Auth</span>
+        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Auth</span>
       </div>
 
       <!-- Connector 1 -->
-      <div class="flex items-center pt-5 flex-1">
+      <div class="flex-1 flex items-center justify-center px-3">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-1"></div>
         </div>
       </div>
 
       <!-- Guardrail Step -->
-      <div id="step-guard" class="flex flex-col items-center transition-all duration-300 opacity-50 w-20">
-        <div class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center mb-2 shadow-lg">
-          <span class="text-xl">🛡️</span>
+      <div id="step-guard" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+        <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
+          <span class="text-2xl leading-none flex items-center justify-center">🛡️</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full h-8 flex items-center justify-center">Guardrail</span>
+        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Guardrail</span>
       </div>
 
       <!-- Connector 2 -->
-      <div class="flex items-center pt-5 flex-1">
+      <div class="flex-1 flex items-center justify-center px-3">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-2"></div>
         </div>
       </div>
 
       <!-- Router Step -->
-      <div id="step-router" class="flex flex-col items-center transition-all duration-300 opacity-50 w-20">
-        <div class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center mb-2 shadow-lg">
-          <span class="text-xl">🔀</span>
+      <div id="step-router" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+        <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300">
+          <span class="text-2xl leading-none flex items-center justify-center">🔀</span>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full h-8 flex items-center justify-center">Router</span>
+        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Router</span>
       </div>
 
       <!-- Connector 3 -->
-      <div class="flex items-center pt-5 flex-1">
+      <div class="flex-1 flex items-center justify-center px-3">
         <div class="h-0.5 w-full bg-slate-800 relative">
           <div class="absolute inset-0 bg-blue-500 w-0 transition-all duration-500" id="line-3"></div>
         </div>
       </div>
 
       <!-- Inference Step -->
-      <div id="step-llm" class="flex flex-col items-center transition-all duration-300 opacity-50 w-20">
-        <div class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center mb-2 shadow-lg relative">
-          <span class="text-xl">🤖</span>
+      <div id="step-llm" class="flex flex-col items-center transition-all duration-300 opacity-50" style="width: 80px;">
+        <div class="w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg relative transition-all duration-300">
+          <span class="text-2xl leading-none flex items-center justify-center">🤖</span>
           <div id="active-provider-badge" class="absolute -top-2 -right-2 bg-green-500 text-black text-micro px-1 rounded font-bold hidden">GROQ</div>
         </div>
-        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full h-8 flex items-center justify-center">Inference</span>
+        <span class="text-compact uppercase tracking-wider font-semibold text-slate-500 text-center w-full leading-tight px-1" style="font-size: 9px; line-height: 1.2;">Inference</span>
       </div>
 
     </div>
