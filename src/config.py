@@ -238,7 +238,7 @@ DASHBOARD_HTML = """
           <div class="space-y-2">
             <div class="prompt-wrap prompt-glow">
               <textarea id="input-prompt"
-                        class="w-full h-16 focus-ring text-xs p-1.5"
+                        class="w-full h-[calc(4rem-16px)] focus-ring text-xs p-1.5"
                         style="background: transparent !important;" placeholder="Ask anything...">Explain quantum computing in simple terms</textarea>
               <div class="token-badge" id="token-counter">~10 tokens</div>
             </div>
