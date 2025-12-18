@@ -934,7 +934,7 @@ DASHBOARD_HTML = """
       const blockedInBatch = securityMetrics.adversarialBlocked - startMetrics.adversarialBlocked;
       const piiInBatch = securityMetrics.piiLeaksPrevented - startMetrics.piiLeaksPrevented;
       const totalBlocked = blockedInBatch + piiInBatch;
-      const finesAvoided = securityMetrics.complianceFinesAvoided;
+      const finesAvoided = securityMetrics.complianceFinesAvoided - startMetrics.complianceFinesAvoided;
 
       const metricsHTML = `
         <div class="text-sm text-slate-300 text-left">
@@ -1005,7 +1005,8 @@ DASHBOARD_HTML = """
       // Capture metrics at start of batch
       const batchStartMetrics = {
         adversarialBlocked: securityMetrics.adversarialBlocked,
-        piiLeaksPrevented: securityMetrics.piiLeaksPrevented
+        piiLeaksPrevented: securityMetrics.piiLeaksPrevented,
+        complianceFinesAvoided: securityMetrics.complianceFinesAvoided
       };
 
       // Display initiation message
