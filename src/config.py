@@ -1023,8 +1023,13 @@ DASHBOARD_HTML = """
         addCommentary('');
         addCommentary(`> SECURITY TEST ${i}/8`);
 
-        // Execute scenario with adversarial prompt
-        await runScenario('injection', getAdversarialPrompt(i));
+        try {
+          // Execute scenario with adversarial prompt
+          await runScenario('injection', getAdversarialPrompt(i));
+        } catch (error) {
+          console.error(`Error in scenario ${i}:`, error);
+          addCommentary(`Error in scenario ${i}: ${error.message}`);
+        }
 
         // Pause between scenarios for readability
         await new Promise(r => setTimeout(r, 2000));
