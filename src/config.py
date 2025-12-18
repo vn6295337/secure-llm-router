@@ -177,43 +177,33 @@ DASHBOARD_HTML = """
         <div class="feature-icon">Fault-Tolerant LLM Mesh</div>
         <div class="mt-2">
           <button data-scenario="normal" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 w-full h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Provider</span>
-            <span>Cascade</span>
+            <span>Resilience</span>
           </button>
         </div>
       </div>
       <div class="feature-card card">
         <div class="feature-icon">Zero-Trust Security</div>
-        <div class="grid grid-cols-2 gap-1.5 mt-2">
-          <button data-scenario="injection" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Attack</span>
-            <span>Prevention</span>
-          </button>
-          <button data-scenario="malformed" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Input</span>
-            <span>Sanitization</span>
+        <div class="mt-2">
+          <button data-scenario="injection" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 w-full h-12 flex flex-col items-center justify-center leading-tight">
+            <span>Threats</span>
+            <span>Blocked</span>
           </button>
         </div>
       </div>
       <div class="feature-card card">
-        <div class="feature-icon">Adaptive Rate Control</div>
+        <div class="feature-icon">Adaptive Cost Control</div>
         <div class="mt-2">
           <button data-scenario="rate-limit" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 w-full h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Traffic</span>
-            <span>Throttle</span>
+            <span>Savings</span>
           </button>
         </div>
       </div>
       <div class="feature-card card">
         <div class="feature-icon">Glass Box Observability</div>
-        <div class="grid grid-cols-2 gap-1.5 mt-2">
-          <button id="download-raw-card" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Export</span>
-            <span>Trace</span>
-          </button>
-          <button id="copy-snippet-card" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 h-12 flex flex-col items-center justify-center leading-tight">
-            <span>Copy</span>
-            <span>Snippet</span>
+        <div class="mt-2">
+          <button id="download-raw-card" class="card-button p-1.5 text-xs rounded bg-slate-800 hover:bg-slate-700 w-full h-12 flex flex-col items-center justify-center leading-tight">
+            <span>Avg</span>
+            <span>Latency</span>
           </button>
         </div>
       </div>
