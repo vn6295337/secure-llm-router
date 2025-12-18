@@ -403,23 +403,44 @@ DASHBOARD_HTML = """
       reliabilityScore: 100
     };
 
-    // Random provider+model failover path generator
+    // Random provider+model failover path generator (30 scenarios)
     function getRandomFailoverPath() {
       const paths = [
-        // Gemini model deprecation → Gemini Flash fallback
-        ["gemini-pro-1.5:deprecated", "gemini-flash:success"],
-        // Groq rate limiting → Groq alternative model
-        ["groq-mixtral-8x7b:rate_limited", "groq-llama3-70b:success"],
-        // OpenRouter unavailable → OpenRouter Claude fallback
-        ["openrouter-gpt4:unavailable", "openrouter-claude-opus:success"],
-        // Gemini timeout → Groq success
-        ["gemini-pro-1.5:timeout", "groq-mixtral-8x7b:success"],
-        // Multiple failures → OpenRouter success
-        ["gemini-flash:timeout", "groq-llama3-70b:fail", "openrouter-claude-opus:success"],
-        // Groq model deprecated → Gemini fallback
-        ["groq-mixtral-8x7b:deprecated", "gemini-flash:success"],
-        // Gemini rate limited → OpenRouter success
-        ["gemini-pro-1.5:rate_limited", "openrouter-gpt4:success"]
+        // Single failure scenarios (10)
+        ["gemini-1.5-pro:timeout", "groq-llama3-70b:success"],
+        ["groq-mixtral-8x7b:rate_limited", "gemini-1.5-pro:success"],
+        ["openrouter-gpt-4:unavailable", "groq-llama3-70b:success"],
+        ["gemini-1.0-pro:deprecated", "gemini-1.5-pro:success"],
+        ["groq-llama2-70b:deprecated", "groq-llama3-70b:success"],
+        ["openrouter-gpt-3.5-turbo:deprecated", "openrouter-gpt-4:success"],
+        ["gemini-1.5-pro:rate_limited", "openrouter-claude-3-opus:success"],
+        ["groq-mixtral-8x7b:timeout", "openrouter-gpt-4:success"],
+        ["openrouter-claude-2:deprecated", "openrouter-claude-3-sonnet:success"],
+        ["gemini-1.0-pro:timeout", "groq-mixtral-8x7b:success"],
+
+        // Double failure scenarios (15)
+        ["gemini-1.5-pro:timeout", "groq-llama3-70b:rate_limited", "openrouter-gpt-4:success"],
+        ["groq-mixtral-8x7b:deprecated", "gemini-1.0-pro:timeout", "gemini-1.5-pro:success"],
+        ["openrouter-gpt-3.5-turbo:deprecated", "groq-llama2-70b:deprecated", "groq-llama3-70b:success"],
+        ["gemini-1.5-pro:rate_limited", "openrouter-claude-2:deprecated", "openrouter-claude-3-opus:success"],
+        ["groq-llama3-70b:timeout", "gemini-1.0-pro:deprecated", "openrouter-gpt-4:success"],
+        ["openrouter-gpt-4:unavailable", "gemini-1.5-pro:timeout", "groq-mixtral-8x7b:success"],
+        ["gemini-1.0-pro:deprecated", "groq-mixtral-8x7b:rate_limited", "openrouter-claude-3-sonnet:success"],
+        ["groq-llama2-70b:deprecated", "openrouter-gpt-3.5-turbo:deprecated", "gemini-1.5-pro:success"],
+        ["openrouter-claude-2:deprecated", "gemini-1.0-pro:timeout", "groq-llama3-70b:success"],
+        ["gemini-1.5-pro:timeout", "groq-mixtral-8x7b:timeout", "openrouter-claude-3-opus:success"],
+        ["groq-llama3-70b:rate_limited", "openrouter-gpt-4:unavailable", "gemini-1.5-pro:success"],
+        ["openrouter-gpt-3.5-turbo:deprecated", "gemini-1.0-pro:deprecated", "groq-llama3-70b:success"],
+        ["gemini-1.5-pro:rate_limited", "groq-llama2-70b:deprecated", "openrouter-gpt-4:success"],
+        ["groq-mixtral-8x7b:timeout", "openrouter-claude-2:deprecated", "gemini-1.5-pro:success"],
+        ["openrouter-gpt-4:timeout", "gemini-1.5-pro:rate_limited", "groq-llama3-70b:success"],
+
+        // Triple failure scenarios (5)
+        ["gemini-1.0-pro:deprecated", "groq-llama2-70b:deprecated", "openrouter-gpt-3.5-turbo:deprecated", "openrouter-gpt-4:success"],
+        ["gemini-1.5-pro:timeout", "groq-mixtral-8x7b:rate_limited", "openrouter-claude-2:deprecated", "groq-llama3-70b:success"],
+        ["groq-llama3-70b:timeout", "openrouter-gpt-4:unavailable", "gemini-1.0-pro:deprecated", "openrouter-claude-3-opus:success"],
+        ["openrouter-gpt-3.5-turbo:deprecated", "gemini-1.5-pro:rate_limited", "groq-llama2-70b:deprecated", "gemini-1.5-pro:success"],
+        ["gemini-1.0-pro:timeout", "groq-mixtral-8x7b:timeout", "openrouter-claude-2:deprecated", "openrouter-claude-3-sonnet:success"]
       ];
       return paths[Math.floor(Math.random() * paths.length)];
     }
@@ -534,7 +555,9 @@ DASHBOARD_HTML = """
     
     // State
     let lastRunData = null;
-    
+    let isBatchMode = false;
+    let currentScenarioNum = 0;
+
     // Pipeline visualization functions
     /**
      * Animates the horizontal pipeline flow.
@@ -830,11 +853,77 @@ DASHBOARD_HTML = """
     function highlightElement(selector, type = 'pulse') {
       const el = document.querySelector(selector);
       if (!el) return;
-      
+
       el.classList.add(`${type}-highlight`);
       setTimeout(() => el.classList.remove(`${type}-highlight`), 1000);
     }
-    
+
+    // Display batch metrics table
+    function displayBatchMetricsTable(startMetrics) {
+      const failuresInBatch = sessionMetrics.modelFailures - startMetrics.modelFailures;
+      const downtimeInBatch = sessionMetrics.downtimePrevented - startMetrics.downtimePrevented;
+      const modelsTestedInBatch = sessionMetrics.uniqueModels.size - startMetrics.uniqueModels;
+
+      addCommentary('');
+      addCommentary('═'.repeat(60));
+      addCommentary('[SUMMARY] BATCH RESILIENCE TEST RESULTS');
+      addCommentary('═'.repeat(60));
+      addCommentary('');
+      addCommentary('┌──────────────────────────────────────┬──────────────┐');
+      addCommentary('│ Metric                               │ Value        │');
+      addCommentary('├──────────────────────────────────────┼──────────────┤');
+      addCommentary(`│ Scenarios Executed                   │ 10           │`);
+      addCommentary(`│ Model Failures Handled               │ ${String(failuresInBatch).padStart(12)} │`);
+      addCommentary(`│ Unique Models Tested                 │ ${String(modelsTestedInBatch).padStart(12)} │`);
+      addCommentary(`│ Downtime Prevented                   │ ${String(downtimeInBatch + ' min').padStart(12)} │`);
+      addCommentary(`│ System Reliability                   │ 100%         │`);
+      addCommentary('└──────────────────────────────────────┴──────────────┘');
+      addCommentary('');
+      addCommentary('═'.repeat(60));
+    }
+
+    // Batch resilience test - runs 10 scenarios sequentially
+    async function runBatchResilienceTest() {
+      // Capture metrics at start of batch
+      const batchStartMetrics = {
+        modelFailures: sessionMetrics.modelFailures,
+        uniqueModels: sessionMetrics.uniqueModels.size,
+        downtimePrevented: sessionMetrics.downtimePrevented
+      };
+
+      // Display initiation message
+      commentaryFeed.innerHTML = '';
+      addCommentary('═'.repeat(60));
+      addCommentary('[INIT] INITIATING 10 FAILURE SCENARIOS');
+      addCommentary('═'.repeat(60));
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Enable batch mode
+      isBatchMode = true;
+
+      // Run 10 scenarios sequentially
+      for (let i = 1; i <= 10; i++) {
+        currentScenarioNum = i;
+
+        // Show progress header
+        addCommentary('');
+        addCommentary(`> SCENARIO ${i}/10`);
+
+        // Execute scenario
+        await runScenario('normal');
+
+        // Pause between scenarios for readability
+        await new Promise(r => setTimeout(r, 2000));
+      }
+
+      // Disable batch mode
+      isBatchMode = false;
+      currentScenarioNum = 0;
+
+      // Display final metrics table
+      displayBatchMetricsTable(batchStartMetrics);
+    }
+
     // Scenario runner
     async function runScenario(scenarioKey) {
       const scenario = SCENARIOS[scenarioKey];
@@ -1042,14 +1131,20 @@ DASHBOARD_HTML = """
                 sessionMetrics.downtimePrevented += failedModelsInThisTest * 4; // 4 min per failure
                 sessionMetrics.reliabilityScore = 100; // Always 100% since we always recover
 
-                // Display cumulative metrics
-                addCommentary('─'.repeat(50));
-                addCommentary(`✓ Resilience Test #${sessionMetrics.totalTests} Complete`);
-                addCommentary(`→ Total Model Failures Handled: ${sessionMetrics.modelFailures}`);
-                addCommentary(`→ Unique Models Tested: ${sessionMetrics.uniqueModels.size}`);
-                addCommentary(`→ Downtime Prevented: ${sessionMetrics.downtimePrevented} min`);
-                addCommentary(`→ System Reliability: ${sessionMetrics.reliabilityScore}%`);
-                addCommentary('─'.repeat(50));
+                // Display completion message based on mode
+                if (isBatchMode) {
+                  // In batch mode: simple completion message
+                  addCommentary(`+ Scenario ${currentScenarioNum}/10 Complete`);
+                } else {
+                  // Single scenario mode: detailed metrics
+                  addCommentary('─'.repeat(50));
+                  addCommentary(`+ Resilience Test #${sessionMetrics.totalTests} Complete`);
+                  addCommentary(`→ Total Model Failures Handled: ${sessionMetrics.modelFailures}`);
+                  addCommentary(`→ Unique Models Tested: ${sessionMetrics.uniqueModels.size}`);
+                  addCommentary(`→ Downtime Prevented: ${sessionMetrics.downtimePrevented} min`);
+                  addCommentary(`→ System Reliability: ${sessionMetrics.reliabilityScore}%`);
+                  addCommentary('─'.repeat(50));
+                }
               }
 
               metricStatus.textContent = 'Success';
@@ -1092,7 +1187,13 @@ DASHBOARD_HTML = """
         // Highlight selected
         btn.classList.remove('bg-slate-700/50', 'hover:bg-slate-600');
         btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-        runScenario(scenarioKey);
+
+        // Run batch test for normal scenario, single for others
+        if (scenarioKey === 'normal') {
+          runBatchResilienceTest();
+        } else {
+          runScenario(scenarioKey);
+        }
       });
     });
     
