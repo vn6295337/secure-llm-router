@@ -394,6 +394,59 @@ DASHBOARD_HTML = """
   </div>
   
   <script>
+    // Session tracking for resilience testing
+    let sessionMetrics = {
+      totalTests: 0,
+      modelFailures: 0,
+      uniqueModels: new Set(),
+      downtimePrevented: 0,
+      reliabilityScore: 100
+    };
+
+    // Random provider+model failover path generator
+    function getRandomFailoverPath() {
+      const paths = [
+        // Gemini model deprecation → Gemini Flash fallback
+        ["gemini-pro-1.5:deprecated", "gemini-flash:success"],
+        // Groq rate limiting → Groq alternative model
+        ["groq-mixtral-8x7b:rate_limited", "groq-llama3-70b:success"],
+        // OpenRouter unavailable → OpenRouter Claude fallback
+        ["openrouter-gpt4:unavailable", "openrouter-claude-opus:success"],
+        // Gemini timeout → Groq success
+        ["gemini-pro-1.5:timeout", "groq-mixtral-8x7b:success"],
+        // Multiple failures → OpenRouter success
+        ["gemini-flash:timeout", "groq-llama3-70b:fail", "openrouter-claude-opus:success"],
+        // Groq model deprecated → Gemini fallback
+        ["groq-mixtral-8x7b:deprecated", "gemini-flash:success"],
+        // Gemini rate limited → OpenRouter success
+        ["gemini-pro-1.5:rate_limited", "openrouter-gpt4:success"]
+      ];
+      return paths[Math.floor(Math.random() * paths.length)];
+    }
+
+    // Parse provider-model string and return formatted names
+    function parseProviderModel(fullString) {
+      const parts = fullString.split('-');
+      const baseProvider = parts[0]; // gemini, groq, openrouter
+      const modelParts = parts.slice(1); // ["pro", "1.5"] or ["mixtral", "8x7b"] etc
+
+      // Format model name nicely
+      const modelName = modelParts.map(p => {
+        // Capitalize first letter of each part
+        return p.charAt(0).toUpperCase() + p.slice(1);
+      }).join(' ');
+
+      // Format full display name
+      const providerDisplay = baseProvider.charAt(0).toUpperCase() + baseProvider.slice(1);
+      const fullDisplayName = modelName ? `${providerDisplay} ${modelName}` : providerDisplay;
+
+      return {
+        baseProvider,      // "gemini", "groq", "openrouter"
+        modelName,         // "Pro 1.5", "Mixtral 8x7b"
+        fullDisplayName    // "Gemini Pro 1.5", "Groq Mixtral 8x7b"
+      };
+    }
+
     // Scenario definitions
     const SCENARIOS = {
       normal: {
@@ -406,11 +459,11 @@ DASHBOARD_HTML = """
           { id: "auth", label: "AUTH", action: () => ({ status: "pass" }) },
           { id: "input", label: "INPUT VALIDATION", action: () => ({ status: "pass" }) },
           { id: "injection", label: "INJECTION CHECK", action: () => ({ status: "pass" }) },
-          { id: "provider", label: "PROVIDER CASCADE", action: () => ({ status: "fallback", path: ["gemini:timeout", "groq:success"] }) }
+          { id: "provider", label: "PROVIDER CASCADE", action: () => ({ status: "fallback", path: getRandomFailoverPath() }) }
         ],
         explain: {
-          tech: "Standard request flow with multi-provider fallback. Gemini timed out, Groq succeeded.",
-          recruiter: "Demonstrates production reliability through automatic provider failover."
+          tech: "Standard request flow with multi-provider and multi-model fallback. Models may timeout, deprecate, or face rate limits.",
+          recruiter: "Demonstrates production reliability through automatic provider and model-level failover."
         }
       },
       injection: {
@@ -881,34 +934,50 @@ DASHBOARD_HTML = """
 
           lastRunData.steps.push({id: step.id, status: 'fallback', path: result.path});
           let attemptNum = 0;
+          let failedModelsInThisTest = 0;
+
           for (const p of result.path) {
-            const [provider, outcome] = p.split(':');
-            const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+            const [providerModel, outcome] = p.split(':');
+            const parsed = parseProviderModel(providerModel);
+            const { baseProvider, fullDisplayName } = parsed;
             attemptNum++;
+
+            // Track unique models tested
+            sessionMetrics.uniqueModels.add(fullDisplayName);
 
             // Router activates for this provider attempt
             updatePipelineVisual('router', 'running');
             const routerContext = {
-              provider: providerName,
+              provider: fullDisplayName,
               attemptNum: attemptNum
             };
             appendLog(getDetailedStepMessage('router', 'running', routerContext));
             await new Promise(r => setTimeout(r, 1000));
 
-            // Light up the provider badge
-            if (provider === 'gemini') lightProvider('gemini', outcome, outcome==='success'?120:0);
-            if (provider === 'groq') lightProvider('groq', outcome, outcome==='success'?87:0);
-            if (provider === 'openrouter') lightProvider('open', outcome, outcome==='success'?200:0);
+            // Light up the provider badge (based on base provider)
+            if (baseProvider === 'gemini') lightProvider('gemini', outcome, outcome==='success'?120:0);
+            if (baseProvider === 'groq') lightProvider('groq', outcome, outcome==='success'?87:0);
+            if (baseProvider === 'openrouter') lightProvider('open', outcome, outcome==='success'?200:0);
             await new Promise(r => setTimeout(r, 800));
 
-            lastRunData.providerPath.push({provider, outcome});
+            lastRunData.providerPath.push({provider: fullDisplayName, outcome});
 
-            if (outcome === 'timeout' || outcome === 'fail') {
-              // Provider failed - deactivate router and try next
-              addCommentary(`Attempting ${providerName}... ${outcome === 'timeout' ? 'Timeout' : 'Failed'}.`);
+            if (outcome === 'timeout' || outcome === 'fail' || outcome === 'deprecated' || outcome === 'rate_limited' || outcome === 'unavailable') {
+              // Model failed - track and try next
+              failedModelsInThisTest++;
+              sessionMetrics.modelFailures++;
+
+              // Determine failure reason display
+              let reasonText = outcome === 'timeout' ? 'Timeout (>5s)' :
+                             outcome === 'deprecated' ? 'Model deprecated' :
+                             outcome === 'rate_limited' ? 'Rate limited' :
+                             outcome === 'unavailable' ? 'Temporarily unavailable' :
+                             'Failed';
+
+              addCommentary(`Attempting ${fullDisplayName}... ${reasonText}.`);
               const failContext = {
-                provider: providerName,
-                reason: outcome === 'timeout' ? 'timeout (>5s)' : 'failed'
+                provider: fullDisplayName,
+                reason: reasonText.toLowerCase()
               };
               appendLog(getDetailedStepMessage('router', 'fail', failContext) + ', trying next...');
               // Deactivate router (go back to inactive state)
@@ -919,11 +988,11 @@ DASHBOARD_HTML = """
               }
               await new Promise(r => setTimeout(r, 600));
             } else if (outcome === 'success') {
-              // Provider succeeded - router passes, then show inferencing
-              addCommentary(`Attempting ${providerName}... Success!`);
-              const latency = provider==='groq'?87:(provider==='gemini'?120:200);
+              // Model succeeded - router passes, then show inferencing
+              addCommentary(`Attempting ${fullDisplayName}... Success!`);
+              const latency = baseProvider==='groq'?87:(baseProvider==='gemini'?120:200);
               const passContext = {
-                provider: providerName,
+                provider: fullDisplayName,
                 latency: latency
               };
               appendLog(getDetailedStepMessage('router', 'pass', passContext));
@@ -933,15 +1002,15 @@ DASHBOARD_HTML = """
               // Now show inferencing (provider step)
               updatePipelineVisual('provider', 'running');
               const inferenceContext = {
-                provider: providerName,
+                provider: fullDisplayName,
                 maxTokens: scenario.maxTokens
               };
               appendLog(getDetailedStepMessage('provider', 'running', inferenceContext));
               await new Promise(r => setTimeout(r, 1200));
 
               // Inferencing complete
-              lastRunData.provider = provider;
-              lastRunData.latency = provider==='groq'?87:(provider==='gemini'?120:200);
+              lastRunData.provider = fullDisplayName;
+              lastRunData.latency = baseProvider==='groq'?87:(baseProvider==='gemini'?120:200);
               // tokens consumed: estimate from prompt token count (used) + a small generation cost
               const promptUsed = scenario.prompt.length / 4; // rough estimate
               const generated = Math.min(scenario.maxTokens, Math.max(1, Math.floor(scenario.maxTokens * 0.15) + 5));
@@ -955,17 +1024,34 @@ DASHBOARD_HTML = """
                 maxTokens: scenario.maxTokens
               };
               appendLog(getDetailedStepMessage('provider', 'pass', completeContext));
-              updatePipelineVisual('provider', 'pass', { provider: provider });
+              updatePipelineVisual('provider', 'pass', { provider: fullDisplayName });
 
-              metricProvider.textContent = provider.toUpperCase();
+              metricProvider.textContent = fullDisplayName.toUpperCase();
               metricLatency.textContent = lastRunData.latency + ' ms';
-              metricTokens.innerHTML = `${lastRunData.tokensConsumed}/<span id="metric-tokens-max">${scenario.maxTokens}</span>`;
-              metricTokensSaved.textContent = lastRunData.tokensSaved;
+              metricTokens.innerHTML = `${Math.round(lastRunData.tokensConsumed)}/<span id="metric-tokens-max">${scenario.maxTokens}</span>`;
+              metricTokensSaved.textContent = Math.round(lastRunData.tokensSaved);
               metricRate.textContent = '7/10';
               // Highlight metrics on success
               highlightElement('.card:has(#metric-latency)', 'pulse');
               addCommentary(`Response received in ${lastRunData.latency}ms.`);
               addCommentary(`Zero downtime for end users.`);
+
+              // Update session metrics for resilience testing
+              if (scenarioKey === 'normal') {
+                sessionMetrics.totalTests++;
+                sessionMetrics.downtimePrevented += failedModelsInThisTest * 4; // 4 min per failure
+                sessionMetrics.reliabilityScore = 100; // Always 100% since we always recover
+
+                // Display cumulative metrics
+                addCommentary('─'.repeat(50));
+                addCommentary(`✓ Resilience Test #${sessionMetrics.totalTests} Complete`);
+                addCommentary(`→ Total Model Failures Handled: ${sessionMetrics.modelFailures}`);
+                addCommentary(`→ Unique Models Tested: ${sessionMetrics.uniqueModels.size}`);
+                addCommentary(`→ Downtime Prevented: ${sessionMetrics.downtimePrevented} min`);
+                addCommentary(`→ System Reliability: ${sessionMetrics.reliabilityScore}%`);
+                addCommentary('─'.repeat(50));
+              }
+
               metricStatus.textContent = 'Success';
               lastRunData.final = 'success';
               break;
