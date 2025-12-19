@@ -261,7 +261,7 @@ DASHBOARD_HTML = """
           <div class="relative z-10 flex gap-3">
 
             <!-- Vertical Lifecycle -->
-            <div class="flex flex-col justify-start" style="min-width:120px;gap:14px;">
+            <div class="flex flex-col justify-between" style="min-width:120px;height:140px;">
 
               <!-- Auth -->
               <div id="step-auth" class="flex items-center gap-2 opacity-50">
@@ -296,7 +296,7 @@ DASHBOARD_HTML = """
             <!-- Status / Execution Log (Right Side) -->
             <div class="flex-1">
               <div id="execution-log"
-                   class="bg-slate-900/50 rounded p-1 h-full overflow-y-auto" style="max-height:200px;">
+                   class="bg-slate-900/50 rounded p-1 h-full overflow-y-auto" style="max-height:140px;">
                 <div class="text-xs text-slate-300 font-medium text-center">
                   Ready. Select a scenario or enter a custom prompt.
                 </div>
@@ -626,6 +626,14 @@ DASHBOARD_HTML = """
       injection: 'ready',
       cost: 'ready',
       performance: 'ready'
+    };
+
+    // Abort controllers for canceling running scenarios
+    let abortControllers = {
+      normal: null,
+      injection: null,
+      cost: null,
+      performance: null
     };
 
     // Status message accumulation
@@ -1384,6 +1392,7 @@ DASHBOARD_HTML = """
 
       // Update inputs
       document.getElementById('input-prompt').value = promptToUse;
+      updateTokenCount(); // Update token counter for new prompt
       document.getElementById('input-api').value = scenario.apiKey;
       document.getElementById('input-max-tokens').value = scenario.maxTokens;
       document.getElementById('input-temp').value = scenario.temperature;
@@ -1640,13 +1649,24 @@ DASHBOARD_HTML = """
           return;
         }
 
-        // PREVENT: Don't run if already running
+        // TOGGLE BEHAVIOR: If running, abort and reset
         if (currentState === 'running') {
+          if (abortControllers[scenarioKey]) {
+            abortControllers[scenarioKey].abort();
+            abortControllers[scenarioKey] = null;
+          }
+          buttonStates[scenarioKey] = 'ready';
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'bg-slate-700/50', 'hover:bg-slate-600');
+          btn.classList.add('bg-slate-800', 'hover:bg-slate-700');
+          appendLog('Scenario stopped by user');
           return;
         }
 
         // UPDATE STATE: Mark as running
         buttonStates[scenarioKey] = 'running';
+
+        // Create abort controller for this scenario
+        abortControllers[scenarioKey] = new AbortController();
 
         // CLEAR: Clear execution log from previous run
         statusMessageCounter = 0;
@@ -1659,10 +1679,10 @@ DASHBOARD_HTML = """
 
         // VISUAL: Highlight selected button
         document.querySelectorAll('button[data-scenario]').forEach(b => {
-          b.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+          b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'bg-slate-800', 'hover:bg-slate-700');
           b.classList.add('bg-slate-700/50', 'hover:bg-slate-600');
         });
-        btn.classList.remove('bg-slate-700/50', 'hover:bg-slate-600');
+        btn.classList.remove('bg-slate-700/50', 'hover:bg-slate-600', 'bg-slate-800', 'hover:bg-slate-700');
         btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
 
         // RUN: Execute appropriate batch test
@@ -1681,18 +1701,27 @@ DASHBOARD_HTML = """
 
           // UPDATE STATE: Mark as completed
           buttonStates[scenarioKey] = 'completed';
+          abortControllers[scenarioKey] = null;
 
           // VISUAL: Remove button highlight after completion
-          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-          btn.classList.add('bg-slate-700/50', 'hover:bg-slate-600');
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'bg-slate-700/50', 'hover:bg-slate-600');
+          btn.classList.add('bg-slate-800', 'hover:bg-slate-700');
 
         } catch (error) {
           console.error('Batch test error:', error);
+
+          // Check if it was aborted by user
+          if (error.name === 'AbortError') {
+            // Already handled in abort section
+            return;
+          }
+
           buttonStates[scenarioKey] = 'ready'; // Reset on error
+          abortControllers[scenarioKey] = null;
 
           // VISUAL: Remove button highlight on error
-          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-          btn.classList.add('bg-slate-700/50', 'hover:bg-slate-600');
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'bg-slate-700/50', 'hover:bg-slate-600');
+          btn.classList.add('bg-slate-800', 'hover:bg-slate-700');
         }
       });
     });
