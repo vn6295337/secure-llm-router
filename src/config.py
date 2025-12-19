@@ -266,37 +266,29 @@ DASHBOARD_HTML = """
               <!-- Auth -->
               <div id="step-auth" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Auth</span>
-                <div class="w-12 h-12 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:0;">
-                  <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🔑</span>
-                </div>
+                <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🔑</span>
               </div>
 
               <!-- Guard -->
               <div id="step-guard" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Guard</span>
-                <div class="w-12 h-12 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:0;">
-                  <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🛡️</span>
-                </div>
+                <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🛡️</span>
               </div>
 
               <!-- Router -->
               <div id="step-router" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Route</span>
-                <div class="w-12 h-12 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:0;">
-                  <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🔀</span>
-                </div>
+                <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">🔀</span>
               </div>
 
               <!-- Inference -->
-              <div id="step-llm" class="flex items-center gap-2 opacity-50">
+              <div id="step-llm" class="flex items-center gap-2 opacity-50 relative">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Infer</span>
-                <div class="w-12 h-12 rounded border border-slate-700 bg-slate-900 flex items-center justify-center relative" style="padding:0;">
-                  <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">⚙</span>
-                  <div id="active-provider-badge"
-                       class="absolute -top-1 -right-1 bg-green-500 text-black px-1 rounded font-bold hidden"
-                       style="font-size:7px;">
-                    GROQ
-                  </div>
+                <span style="font-size:26px;line-height:26px;height:26px;display:inline-block;vertical-align:middle;">⚙</span>
+                <div id="active-provider-badge"
+                     class="absolute -top-1 right-0 bg-green-500 text-black px-1 rounded font-bold hidden"
+                     style="font-size:7px;">
+                  GROQ
                 </div>
               </div>
             </div>
@@ -304,7 +296,7 @@ DASHBOARD_HTML = """
             <!-- Status / Execution Log (Right Side) -->
             <div class="flex-1">
               <div id="execution-log"
-                   class="bg-slate-900/50 rounded p-3 h-full overflow-y-auto" style="max-height:200px;">
+                   class="bg-slate-900/50 rounded p-1 h-full overflow-y-auto" style="max-height:200px;">
                 <div class="text-xs text-slate-300 font-medium text-center">
                   Ready. Select a scenario or enter a custom prompt.
                 </div>
@@ -639,7 +631,7 @@ DASHBOARD_HTML = """
     // Status message accumulation
     let statusMessageCounter = 0;  // Counter for numbered list
     let statusMessages = [];       // Array to store all messages
-    const MAX_STATUS_LINES = 15;   // Maximum visible lines before scroll
+    const MAX_STATUS_LINES = 100;  // Maximum visible lines before scroll
 
     // Cost optimization model data (from Artificial Analysis)
     const COST_MODELS = {
@@ -705,33 +697,21 @@ DASHBOARD_HTML = """
       if (status === 'running') {
         target.node.classList.remove('opacity-50');
         target.node.classList.add('active', 'pulse-highlight');
-
-        // If it's the Guard node, ensure it's not red from previous run
-        const iconBox = target.node.querySelector('div');
-        iconBox.classList.remove('border-red-500', 'shadow-red-500/50');
-        iconBox.classList.add('border-blue-500');
       }
 
       // 2. STATE: PASS
       else if (status === 'pass') {
         target.node.classList.remove('pulse-highlight');
-        // Solidify the active state
-        const iconBox = target.node.querySelector('div');
-        iconBox.classList.add('bg-slate-800', 'border-blue-400');
       }
 
       // 3. STATE: BLOCKED (Turn Red)
       else if (status === 'block' || status === 'fail') {
         target.node.classList.remove('pulse-highlight');
 
-        // Turn the icon box RED
-        const iconBox = target.node.querySelector('div');
-        iconBox.classList.remove('border-slate-700', 'border-blue-500', 'group-[.active]:border-blue-500');
-        iconBox.classList.add('border-red-500', 'shadow-lg', 'shadow-red-500/20');
-
         // Change Icon to X
-        const iconText = iconBox.querySelector('span');
-        if(iconText) iconText.innerText = '🚫';
+        const spans = target.node.querySelectorAll('span');
+        const iconSpan = spans[spans.length - 1]; // Last span is the icon
+        if(iconSpan) iconSpan.innerText = '🚫';
       }
 
       // 4. SPECIAL: LLM PROVIDER BADGE
@@ -754,24 +734,20 @@ DASHBOARD_HTML = """
         el.classList.add('opacity-50');
         el.classList.remove('active', 'pulse-highlight');
 
-        // Reset Inner Box
-        const box = el.querySelector('div');
-        box.className = 'w-12 h-12 rounded border border-slate-700 bg-slate-900 flex items-center justify-center';
-        if(id === 'step-llm') box.classList.add('relative');
-        box.style.padding = '0';
-
         // Reset Icon Text (in case we changed it to 🚫)
-        const span = box.querySelector('span');
-        if(span) {
-          span.style.fontSize = '26px';
-          span.style.lineHeight = '26px';
-          span.style.height = '26px';
-          span.style.display = 'inline-block';
-          span.style.verticalAlign = 'middle';
-          if(id === 'step-auth') span.innerText = '🔑';
-          if(id === 'step-guard') span.innerText = '🛡️';
-          if(id === 'step-router') span.innerText = '🔀';
-          if(id === 'step-llm') span.innerText = '⚙';
+        // Get icon span directly (no container div anymore)
+        const spans = el.querySelectorAll('span');
+        const iconSpan = spans[spans.length - 1]; // Last span is the icon
+        if(iconSpan && iconSpan.style.fontSize) { // Check if it's the icon span
+          iconSpan.style.fontSize = '26px';
+          iconSpan.style.lineHeight = '26px';
+          iconSpan.style.height = '26px';
+          iconSpan.style.display = 'inline-block';
+          iconSpan.style.verticalAlign = 'middle';
+          if(id === 'step-auth') iconSpan.innerText = '🔑';
+          if(id === 'step-guard') iconSpan.innerText = '🛡️';
+          if(id === 'step-router') iconSpan.innerText = '🔀';
+          if(id === 'step-llm') iconSpan.innerText = '⚙';
         }
       });
 
@@ -1672,6 +1648,15 @@ DASHBOARD_HTML = """
         // UPDATE STATE: Mark as running
         buttonStates[scenarioKey] = 'running';
 
+        // CLEAR: Clear execution log from previous run
+        statusMessageCounter = 0;
+        statusMessages = [];
+        executionLog.innerHTML = `
+          <div class="text-xs text-slate-300 font-medium text-center">
+            Starting scenario...
+          </div>
+        `;
+
         // VISUAL: Highlight selected button
         document.querySelectorAll('button[data-scenario]').forEach(b => {
           b.classList.remove('bg-blue-600', 'hover:bg-blue-500');
@@ -1697,9 +1682,17 @@ DASHBOARD_HTML = """
           // UPDATE STATE: Mark as completed
           buttonStates[scenarioKey] = 'completed';
 
+          // VISUAL: Remove button highlight after completion
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+          btn.classList.add('bg-slate-700/50', 'hover:bg-slate-600');
+
         } catch (error) {
           console.error('Batch test error:', error);
           buttonStates[scenarioKey] = 'ready'; // Reset on error
+
+          // VISUAL: Remove button highlight on error
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+          btn.classList.add('bg-slate-700/50', 'hover:bg-slate-600');
         }
       });
     });
@@ -1807,14 +1800,17 @@ DASHBOARD_HTML = """
     const promptInput = document.getElementById('input-prompt');
     const tokenCounter = document.getElementById('token-counter');
     function updateTokenCount() {
+      if (!promptInput || !tokenCounter) return;
       const text = promptInput.value;
       // Rough estimation: ~4 characters per token
       const estimatedTokens = Math.ceil(text.length / 4);
       tokenCounter.textContent = `~${estimatedTokens} tokens`;
     }
-    promptInput?.addEventListener('input', updateTokenCount);
-    // Initial update
-    updateTokenCount();
+    if (promptInput) {
+      promptInput.addEventListener('input', updateTokenCount);
+      // Initial update
+      updateTokenCount();
+    }
 
     // init
     clearVisual();
