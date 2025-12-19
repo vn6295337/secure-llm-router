@@ -1771,6 +1771,15 @@ DASHBOARD_HTML = """
         return;
       }
       
+      // CLEAR: Clear execution log before fresh execution
+      statusMessageCounter = 0;
+      statusMessages = [];
+      executionLog.innerHTML = `
+        <div class="text-xs text-slate-300 font-medium text-center">
+          Starting custom prompt execution...
+        </div>
+      `;
+      
       // Create dynamic scenario based on current input
       const customScenario = {
         title: "Custom Prompt Execution",
