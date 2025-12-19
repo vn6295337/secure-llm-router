@@ -69,13 +69,13 @@ DASHBOARD_HTML = """
       0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
       50% { box-shadow: 0 0 20px 8px rgba(59, 130, 246, 0.5); }
     }
-    
+
     @keyframes flash {
       0%, 100% { background-color: inherit; border-color: inherit; }
       50% { background-color: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); }
     }
-    
-    .pulse-highlight { animation: pulse 0.8s ease-in-out; }
+
+    .pulse-highlight { animation: pulse 1.2s ease-in-out; }
     .flash-highlight { animation: flash 0.6s ease-in-out; }
     
     /* Tooltip styles */
@@ -261,52 +261,37 @@ DASHBOARD_HTML = """
           <div class="relative z-10 flex gap-3">
 
             <!-- Vertical Lifecycle -->
-            <div class="flex flex-col justify-start" style="min-width: 120px;">
+            <div class="flex flex-col justify-start gap-1" style="min-width: 120px;">
 
               <!-- Auth -->
               <div id="step-auth" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Auth</span>
-                <div class="w-6 h-6 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:2px;">
-                  <span style="font-size:18px;line-height:1;">🔑</span>
+                <div class="rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="width:22px;height:22px;padding:1px;">
+                  <span style="font-size:20px;line-height:1;">🔑</span>
                 </div>
-              </div>
-
-              <!-- Arrow 1 -->
-              <div class="flex justify-center opacity-0" id="arrow-1" style="height:8px;">
-                <span class="flow-arrow text-blue-500" style="font-size:10px;">▼</span>
               </div>
 
               <!-- Guard -->
               <div id="step-guard" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Guard</span>
-                <div class="w-6 h-6 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:2px;">
-                  <span style="font-size:18px;line-height:1;">🛡️</span>
+                <div class="rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="width:22px;height:22px;padding:1px;">
+                  <span style="font-size:20px;line-height:1;">🛡️</span>
                 </div>
-              </div>
-
-              <!-- Arrow 2 -->
-              <div class="flex justify-center opacity-0" id="arrow-2" style="height:8px;">
-                <span class="flow-arrow text-blue-500" style="font-size:10px;">▼</span>
               </div>
 
               <!-- Router -->
               <div id="step-router" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Route</span>
-                <div class="w-6 h-6 rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="padding:2px;">
-                  <span style="font-size:18px;line-height:1;">🔀</span>
+                <div class="rounded border border-slate-700 bg-slate-900 flex items-center justify-center" style="width:22px;height:22px;padding:1px;">
+                  <span style="font-size:20px;line-height:1;">🔀</span>
                 </div>
-              </div>
-
-              <!-- Arrow 3 -->
-              <div class="flex justify-center opacity-0" id="arrow-3" style="height:8px;">
-                <span class="flow-arrow text-blue-500" style="font-size:10px;">▼</span>
               </div>
 
               <!-- Inference -->
               <div id="step-llm" class="flex items-center gap-2 opacity-50">
                 <span class="text-xs uppercase tracking-wider text-slate-500 w-12 text-right">Infer</span>
-                <div class="w-6 h-6 rounded border border-slate-700 bg-slate-900 flex items-center justify-center relative" style="padding:2px;">
-                  <span style="font-size:18px;line-height:1;">⚙</span>
+                <div class="rounded border border-slate-700 bg-slate-900 flex items-center justify-center relative" style="width:22px;height:22px;padding:1px;">
+                  <span style="font-size:20px;line-height:1;">⚙</span>
                   <div id="active-provider-badge"
                        class="absolute -top-1 -right-1 bg-green-500 text-black px-1 rounded font-bold hidden"
                        style="font-size:7px;">
@@ -642,13 +627,6 @@ DASHBOARD_HTML = """
 
     // Cost optimization model data (from Artificial Analysis)
     const COST_MODELS = {
-      documentSummarization: {
-        selected: { name: 'Apriel-v1.6-15B-Thinker', price: 0.00, intelligence: 57.0 },
-        premium: { name: 'Claude 3 Opus', price: 30.00 },
-        prompt: 'Summarize the key points from this quarterly earnings report.',
-        tokensPerRequest: 50000, // 50K tokens per document
-        requestsPerYear: 2000
-      },
       financialAnalysis: {
         selected: { name: 'Nova 2.0 Lite', price: 0.85, intelligence: 57.7 },
         premium: { name: 'GPT-4', price: 37.50 },
@@ -676,15 +654,6 @@ DASHBOARD_HTML = """
         description: "Quick business insight",
         requestsPerDay: 500
       },
-      medium: {
-        prompt: "Our customer acquisition cost (CAC) has increased 40% over the past quarter while our average contract value (ACV) remained flat at $12K annually. Analyze the key factors that could be driving this CAC increase and provide 3 actionable recommendations to improve our CAC to ACV ratio within the next 60 days.",
-        expectedTokens: 300,
-        optimalModel: "GPT-3.5 Turbo",
-        optimalTTFT: 410,
-        industryAvgTTFT: 653,
-        description: "Business problem analysis",
-        requestsPerDay: 200
-      },
       complex: {
         prompt: "Our enterprise SaaS platform is experiencing 22% customer churn among mid-market accounts ($50K-$200K ARR) despite maintaining 98% uptime and 4.8/5 support ratings. Competitors have launched AI-powered features while we've prioritized stability and compliance certifications (SOC 2, HIPAA). The board wants immediate action to reverse churn, but engineering warns that rushing AI features could compromise our core security value proposition and alienate our risk-averse enterprise clients. Analyze this situation considering: (1) short-term revenue impact versus long-term market positioning, (2) resource allocation between product innovation and operational excellence, (3) competitive landscape evolution over 18 months, (4) customer segment differences in feature adoption patterns, and (5) potential partnership opportunities to accelerate AI capabilities. Provide a strategic recommendation with quarterly milestones, investment requirements, and risk mitigation strategies for each stakeholder group.",
         expectedTokens: 600,
@@ -704,13 +673,13 @@ DASHBOARD_HTML = """
      * @param {object} metadata - Optional extra data (provider name, error msg)
      */
     function updatePipelineVisual(stepId, status, metadata = {}) {
-      // Map steps to their specific DOM elements (now using arrows instead of lines)
+      // Map steps to their specific DOM elements
       const steps = {
-        'auth':   { node: document.getElementById('step-auth'),   arrow: document.getElementById('arrow-1') },
-        'input':  { node: document.getElementById('step-guard'),  arrow: document.getElementById('arrow-2') }, // Mapped 'input' -> 'guard' visual
-        'injection': { node: document.getElementById('step-guard'), arrow: document.getElementById('arrow-2') }, // Injection is part of Guard visual
-        'router': { node: document.getElementById('step-router'), arrow: document.getElementById('arrow-3') },
-        'provider': { node: document.getElementById('step-llm'),  arrow: null }
+        'auth':   { node: document.getElementById('step-auth') },
+        'input':  { node: document.getElementById('step-guard') }, // Mapped 'input' -> 'guard' visual
+        'injection': { node: document.getElementById('step-guard') }, // Injection is part of Guard visual
+        'router': { node: document.getElementById('step-router') },
+        'provider': { node: document.getElementById('step-llm') }
       };
 
       const target = steps[stepId];
@@ -727,23 +696,15 @@ DASHBOARD_HTML = """
         iconBox.classList.add('border-blue-500');
       }
 
-      // 2. STATE: PASS (Show arrow with pulse glow)
+      // 2. STATE: PASS
       else if (status === 'pass') {
         target.node.classList.remove('pulse-highlight');
         // Solidify the active state
         const iconBox = target.node.querySelector('div');
         iconBox.classList.add('bg-slate-800', 'border-blue-400');
-
-        // Show the arrow with pulse animation
-        if (target.arrow) {
-          setTimeout(() => {
-            target.arrow.classList.remove('opacity-0');
-            target.arrow.classList.add('opacity-100', 'pulse-highlight');
-          }, 400);
-        }
       }
 
-      // 3. STATE: BLOCKED (Turn Red, Hide Arrow)
+      // 3. STATE: BLOCKED (Turn Red)
       else if (status === 'block' || status === 'fail') {
         target.node.classList.remove('pulse-highlight');
 
@@ -752,15 +713,9 @@ DASHBOARD_HTML = """
         iconBox.classList.remove('border-slate-700', 'border-blue-500', 'group-[.active]:border-blue-500');
         iconBox.classList.add('border-red-500', 'shadow-lg', 'shadow-red-500/20');
 
-        // Change Icon to X (Optional)
+        // Change Icon to X
         const iconText = iconBox.querySelector('span');
         if(iconText) iconText.innerText = '🚫';
-
-        // DO NOT show the arrow. The flow stops here.
-        if (target.arrow) {
-          target.arrow.classList.add('opacity-0');
-          target.arrow.classList.remove('opacity-100', 'pulse-highlight');
-        }
       }
 
       // 4. SPECIAL: LLM PROVIDER BADGE
@@ -769,22 +724,13 @@ DASHBOARD_HTML = """
         if (badge) {
           badge.innerText = metadata.provider.toUpperCase();
           badge.classList.remove('hidden');
-          badge.classList.add('animate-bounce'); // Senior "Pop" effect
+          badge.classList.add('animate-bounce');
         }
       }
     }
 
     // Helper to reset the visuals before a new run
     function clearPipelineVisuals() {
-      // Reset Arrows
-      ['arrow-1', 'arrow-2', 'arrow-3'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-          el.classList.add('opacity-0');
-          el.classList.remove('opacity-100', 'pulse-highlight');
-        }
-      });
-
       // Reset Nodes
       ['step-auth', 'step-guard', 'step-router', 'step-llm'].forEach(id => {
         const el = document.getElementById(id);
@@ -794,14 +740,21 @@ DASHBOARD_HTML = """
 
         // Reset Inner Box
         const box = el.querySelector('div');
-        box.className = 'w-14 h-14 rounded-lg border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-1.5 shadow-lg transition-all duration-300';
+        box.className = 'rounded border border-slate-700 bg-slate-900 flex items-center justify-center';
+        box.style.width = '22px';
+        box.style.height = '22px';
+        box.style.padding = '1px';
 
         // Reset Icon Text (in case we changed it to 🚫)
         const span = box.querySelector('span');
-        if(id === 'step-auth') span.innerText = '🔑';
-        if(id === 'step-guard') span.innerText = '🛡️';
-        if(id === 'step-router') span.innerText = '🔀';
-        if(id === 'step-llm') span.innerText = '⚙';
+        if(span) {
+          span.style.fontSize = '20px';
+          span.style.lineHeight = '1';
+          if(id === 'step-auth') span.innerText = '🔑';
+          if(id === 'step-guard') span.innerText = '🛡️';
+          if(id === 'step-router') span.innerText = '🔀';
+          if(id === 'step-llm') span.innerText = '⚙';
+        }
       });
 
       // Hide Badge
@@ -1221,7 +1174,7 @@ DASHBOARD_HTML = """
       displaySecurityMetrics(batchStartMetrics);
     }
 
-    // Batch cost optimization test - runs 3 cost optimization scenarios
+    // Batch cost optimization test - runs 2 cost optimization scenarios
     async function runBatchCostOptimization() {
       // Display initiation message
       commentaryFeed.innerHTML = '';
@@ -1230,23 +1183,22 @@ DASHBOARD_HTML = """
 
       // Enable batch mode
       isBatchMode = true;
-      batchTotal = 3;
+      batchTotal = 2;
 
       const results = [];
       const scenarios = [
-        { key: 'documentSummarization', name: 'Document Summarization' },
         { key: 'financialAnalysis', name: 'Financial Analysis' },
         { key: 'revenueForecast', name: 'Revenue Forecasting' }
       ];
 
-      // Run 3 cost scenarios sequentially
+      // Run 2 cost scenarios sequentially
       for (let i = 0; i < scenarios.length; i++) {
         currentScenarioNum = i + 1;
         const scenarioData = COST_MODELS[scenarios[i].key];
 
         // Show progress header
         addCommentary('');
-        addCommentary(`> COST SCENARIO ${i + 1}/3: ${scenarios[i].name.toUpperCase()}`);
+        addCommentary(`> COST SCENARIO ${i + 1}/2: ${scenarios[i].name.toUpperCase()}`);
 
         try {
           // Execute cost scenario
@@ -1294,7 +1246,7 @@ DASHBOARD_HTML = """
       displayCostMetrics(results);
     }
 
-    // Batch performance test - runs 3 performance scenarios
+    // Batch performance test - runs 2 performance scenarios
     async function runBatchPerformanceTest() {
       // Display initiation message
       commentaryFeed.innerHTML = '';
@@ -1303,23 +1255,22 @@ DASHBOARD_HTML = """
 
       // Enable batch mode
       isBatchMode = true;
-      batchTotal = 3;
+      batchTotal = 2;
 
       const results = [];
       const scenarios = [
         { key: 'simple', name: 'Quick Business Insight' },
-        { key: 'medium', name: 'Business Problem Analysis' },
         { key: 'complex', name: 'Strategic Executive Decision' }
       ];
 
-      // Run 3 performance scenarios sequentially
+      // Run 2 performance scenarios sequentially
       for (let i = 0; i < scenarios.length; i++) {
         currentScenarioNum = i + 1;
         const scenarioData = PERFORMANCE_BENCHMARKS[scenarios[i].key];
 
         // Show progress header
         addCommentary('');
-        addCommentary(`> PERFORMANCE TEST ${i + 1}/3: ${scenarios[i].name.toUpperCase()}`);
+        addCommentary(`> PERFORMANCE TEST ${i + 1}/2: ${scenarios[i].name.toUpperCase()}`);
 
         try {
           // Execute performance scenario
