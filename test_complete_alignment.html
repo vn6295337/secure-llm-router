@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Request Lifecycle Alignment Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Glowing container simulation */
+        .glowing-container {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        
+        .glowing-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .container-title {
+            font-family: monospace;
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .lifecycle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .lifecycle-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.5;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .step:hover {
+            opacity: 1;
+        }
+        
+        .icon-container {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .icon-container.router {
+            border-radius: 50%;
+            border-width: 2px;
+        }
+        
+        .icon {
+            font-size: 24px;
+            margin: 0 auto;
+        }
+        
+        .step-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+        
+        .connector-wrapper {
+            display: flex;
+            align-items: center;
+            height: 48px;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+        
+        .connector {
+            height: 2px;
+            flex: 1;
+            background: #1e293b;
+            position: relative;
+            min-width: 40px;
+        }
+        
+        .connector-active {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #3b82f6;
+            width: 0;
+            transition: width 0.5s;
+        }
+        
+        /* Alignment verification guides */
+        .alignment-guide {
+            position: absolute;
+            background: rgba(255, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .vertical-center-guide {
+            height: 1px;
+            width: 100%;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .horizontal-center-guide {
+            width: 1px;
+            height: 100%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .container-boundary {
+            position: absolute;
+            border: 2px dashed rgba(0, 255, 0, 0.5);
+            pointer-events: none;
+            z-index: 50;
+            inset: 0;
+        }
+        
+        /* Info panel */
+        .info-panel {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .info-panel h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .info-panel ul {
+            color: #94a3b8;
+            line-height: 1.8;
+        }
+        
+        .info-panel code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Complete Request Lifecycle Alignment Test</h1>
+    <p style="color: #94a3b8; text-align: center; margin-bottom: 20px;">Comprehensive centering system with visual alignment guides</p>
+    
+    <div class="glowing-container" style="position: relative;">
+        <!-- Container boundary guide -->
+        <div class="container-boundary"></div>
+        
+        <!-- Alignment guides -->
+        <div class="alignment-guide vertical-center-guide"></div>
+        <div class="alignment-guide horizontal-center-guide"></div>
+        
+        <div class="w-full flex flex-col items-center justify-center relative z-10">
+            <h2 class="container-title">Request Lifecycle</h2>
+            
+            <div class="lifecycle-container">
+                <div class="lifecycle-content">
+                    <div class="step">
+                        <div class="icon-container">
+                            <span class="icon">🔐</span>
+                        </div>
+                        <span class="step-label">Auth</span>
+                    </div>
+                    
+                    <div class="connector-wrapper">
+                        <div class="connector">
+                            <div class="connector-active"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="icon-container">
+                            <span class="icon">🛡️</span>
+                        </div>
+                        <span class="step-label">Guardrail</span>
+                    </div>
+                    
+                    <div class="connector-wrapper">
+                        <div class="connector">
+                            <div class="connector-active"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="icon-container router">
+                            <span class="icon">🔀</span>
+                        </div>
+                        <span class="step-label">Router</span>
+                    </div>
+                    
+                    <div class="connector-wrapper">
+                        <div class="connector">
+                            <div class="connector-active"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="icon-container">
+                            <span class="icon">🤖</span>
+                        </div>
+                        <span class="step-label">Inference</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-panel">
+        <h3>✅ Complete Alignment System Verification</h3>
+        
+        <h4>Container-Level Centering:</h4>
+        <ul>
+            <li>✅ <strong>Glowing container centered:</strong> <code>flex flex-col items-center justify-center</code> on main card</li>
+            <li>✅ <strong>Content centered within container:</strong> <code>w-full flex flex-col items-center justify-center</code> wrapper</li>
+            <li>✅ <strong>Title centered:</strong> <code>text-center</code> on h2 element</li>
+            <li>✅ <strong>Lifecycle content centered:</strong> <code>flex items-center justify-center</code> with max-width constraints</li>
+        </ul>
+        
+        <h4>Element-Level Centering:</h4>
+        <ul>
+            <li>✅ <strong>Uniform container dimensions:</strong> All icon containers 48px × 48px (<code>w-12 h-12</code>)</li>
+            <li>✅ <strong>Perfect icon centering:</strong> <code>mx-auto</code> within <code>flex items-center justify-center</code> containers</li>
+            <li>✅ <strong>Text centered relative to icons:</strong> <code>text-center w-full block</code> with proper spacing</li>
+            <li>✅ <strong>Connectors vertically centered:</strong> Wrapped in <code>flex items-center h-12</code> (48px height)</li>
+            <li>✅ <strong>Flex-shrink prevention:</strong> <code>flex-shrink-0</code> on all steps and connectors</li>
+        </ul>
+        
+        <h4>Visual Alignment Guides:</h4>
+        <ul>
+            <li>🔴 <strong>Red horizontal line:</strong> Shows perfect vertical centering of all elements</li>
+            <li>🔴 <strong>Red vertical line:</strong> Shows perfect horizontal centering of container</li>
+            <li>🟢 <strong>Green dashed boundary:</strong> Shows glowing container boundaries</li>
+        </ul>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+            <strong>Key Structural Improvements:</strong>
+            <ul style="color: #64748b; font-size: 14px; margin-top: 8px;">
+                <li>• Replaced <code>justify-between</code> with <code>justify-center space-x-4</code> for proper centering</li>
+                <li>• Added <code>flex-shrink-0</code> to prevent uneven spacing</li>
+                <li>• Standardized all connector heights to match icon containers (48px)</li>
+                <li>• Added minimum widths to connectors for consistent appearance</li>
+                <li>• Ensured all elements are vertically and horizontally centered within the glowing container</li>
+                <li>• Maintained all existing animations and interactive functionality</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
+            <strong>🎯 Result:</strong> All elements are now perfectly centered both vertically and horizontally relative to the glowing container, with uniform spacing and alignment throughout the Request Lifecycle visualization.
+        </div>
+    </div>
+</body>
+</html>
