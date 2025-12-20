@@ -14,6 +14,9 @@ pinned: false
 
 **A REST API that safely routes AI requests to multiple LLM providers with built-in security.**
 
+Click to view the demo video: [Product Demo Video](http://github.com/vn6295337/Enterprise-AI-Gateway/issues/2)
+
+
 ## Quick Start
 
 ```bash
