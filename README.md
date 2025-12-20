@@ -24,12 +24,17 @@ cd LLM-secure-gateway
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys
+# Set environment variables with your API keys
+export GEMINI_API_KEY="your-gemini-api-key"     # Optional
+export GROQ_API_KEY="your-groq-api-key"         # Optional
+export OPENROUTER_API_KEY="your-openrouter-api-key"  # Optional
+# Note: At least one API key must be set
 
-# Run the server
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+# Run the server using the startup script (includes API key validation)
+./start-app.sh
+
+# Or run directly with uvicorn
+# uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Key Features
@@ -84,8 +89,7 @@ Return 500 error (with details)
 ## Examples
 
 See the [examples](examples/) directory for usage examples:
-- [Basic API Usage](examples/basic_usage.py) - Simple API calls
-- [Batch Processing](examples/batch_processing.py) - Processing multiple requests
+- [Basic API Usage](examples/basic_usage.py) - Simple API calls and batch processing examples
 
 ## Development
 
@@ -160,4 +164,4 @@ curl -X POST http://localhost:8000/query \
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
