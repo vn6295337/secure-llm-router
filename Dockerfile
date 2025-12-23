@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code from src directory
 COPY src/ ./src/
 
+# Copy static files (dashboard HTML)
+COPY static/ ./static/
+
 # Copy startup script
 COPY start-app.sh .
 
