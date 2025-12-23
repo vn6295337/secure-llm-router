@@ -238,6 +238,11 @@
                       class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded font-medium text-xs">
                 Submit Prompt
               </button>
+              <button id="reset-rate-limit"
+                      class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded font-medium text-xs hidden"
+                      title="Reset rate limit counter (for demo purposes)">
+                Reset Limit
+              </button>
             </div>
 
           </div>
@@ -647,24 +652,36 @@
       performance: null
     };
 
-    // Rate limiter for DDoS protection
+    // Rate limiter for DDoS protection (persisted in sessionStorage)
     const rateLimiter = {
-      requests: [],           // Timestamps of recent requests
       maxRequests: 5,         // Max requests per window
       windowMs: 60000,        // Time window (60 seconds)
+      storageKey: 'rateLimiter_requests',
+      getRequests: function() {
+        const stored = sessionStorage.getItem(this.storageKey);
+        return stored ? JSON.parse(stored) : [];
+      },
+      setRequests: function(requests) {
+        sessionStorage.setItem(this.storageKey, JSON.stringify(requests));
+      },
       check: function() {
         const now = Date.now();
-        // Remove requests outside the window
-        this.requests = this.requests.filter(t => now - t < this.windowMs);
+        // Get and clean up expired requests
+        let requests = this.getRequests().filter(t => now - t < this.windowMs);
         // Check if limit exceeded
-        if (this.requests.length >= this.maxRequests) {
-          const oldestRequest = this.requests[0];
+        if (requests.length >= this.maxRequests) {
+          const oldestRequest = requests[0];
           const resetInSec = Math.ceil((this.windowMs - (now - oldestRequest)) / 1000);
+          this.setRequests(requests);
           return { allowed: false, resetInSec };
         }
         // Add current request
-        this.requests.push(now);
-        return { allowed: true, remaining: this.maxRequests - this.requests.length };
+        requests.push(now);
+        this.setRequests(requests);
+        return { allowed: true, remaining: this.maxRequests - requests.length };
+      },
+      reset: function() {
+        sessionStorage.removeItem(this.storageKey);
       }
     };
 
@@ -1944,6 +1961,15 @@
       });
     });
 
+    // Reset rate limit handler (for demo/recruiter use)
+    document.getElementById('reset-rate-limit')?.addEventListener('click', () => {
+      rateLimiter.reset();
+      const btn = document.getElementById('reset-rate-limit');
+      btn.classList.add('hidden');
+      appendLog('RATE LIMIT: Counter reset. You can now submit prompts again.');
+      metricStatus.textContent = 'Ready';
+    });
+
     // Execute custom prompt handler - REAL API CALL
     document.getElementById('execute-custom')?.addEventListener('click', async () => {
       // Abort any running scenario first
@@ -1975,14 +2001,20 @@
 
       // Rate limit check (DDoS protection)
       const rateCheck = rateLimiter.check();
+      const resetLimitBtn = document.getElementById('reset-rate-limit');
       if (!rateCheck.allowed) {
         updatePipelineVisual('auth', 'fail');
         appendLog(`RATE LIMIT: Too many requests. Try again in ${rateCheck.resetInSec}s`);
         appendLog(`RATE LIMIT: Max ${rateLimiter.maxRequests} requests per ${rateLimiter.windowMs / 1000}s window`);
+        appendLog('RATE LIMIT: Click "Reset Limit" button to reset (demo only)');
         metricStatus.textContent = 'Rate Limited';
         lastRunData = { scenario: 'custom', final: 'error', error: 'Rate limit exceeded' };
+        // Show reset button for recruiters/demo
+        if (resetLimitBtn) resetLimitBtn.classList.remove('hidden');
         return;
       }
+      // Hide reset button when not rate limited
+      if (resetLimitBtn) resetLimitBtn.classList.add('hidden');
       appendLog(`RATE LIMIT: Request allowed (${rateCheck.remaining} remaining)`);
       await new Promise(r => setTimeout(r, 400));
 
@@ -2075,6 +2107,34 @@
           return;
         }
         appendLog('GUARD: No PII exposure found');
+        await new Promise(r => setTimeout(r, 400));
+
+        appendLog('GUARD: Checking AI safety policies...');
+        await new Promise(r => setTimeout(r, 600));
+
+        // Check for unsafe content (violence, illegal, unethical)
+        const unsafePatterns = [
+          { pattern: /how\s+to\s+(make|build|create)\s+(a\s+)?(bomb|explosive|weapon)/i, category: 'violence' },
+          { pattern: /how\s+to\s+(kill|murder|harm|hurt)\s+(someone|a\s+person|people)/i, category: 'violence' },
+          { pattern: /how\s+to\s+(hack|breach|break\s+into)/i, category: 'illegal' },
+          { pattern: /how\s+to\s+(steal|rob|commit\s+fraud)/i, category: 'illegal' },
+          { pattern: /how\s+to\s+(buy|sell|make)\s+(drugs|cocaine|heroin|meth)/i, category: 'illegal' },
+          { pattern: /generate\s+(child|minor).*(porn|explicit|nude)/i, category: 'illegal' },
+          { pattern: /how\s+to\s+(manipulate|deceive|scam|defraud)/i, category: 'unethical' },
+          { pattern: /write\s+(malware|virus|ransomware|trojan)/i, category: 'illegal' },
+          { pattern: /how\s+to\s+(torture|abuse)/i, category: 'violence' },
+          { pattern: /terroris(t|m)|mass\s+shooting/i, category: 'violence' }
+        ];
+
+        const unsafeMatch = unsafePatterns.find(p => p.pattern.test(customPrompt));
+        if (unsafeMatch) {
+          updatePipelineVisual('input', 'fail');
+          appendLog(`GUARD: ⚠️ Unsafe content detected (${unsafeMatch.category}) - BLOCKED`);
+          metricStatus.textContent = 'Blocked';
+          lastRunData = { scenario: 'custom', final: 'blocked', error: `Unsafe content: ${unsafeMatch.category}` };
+          return;
+        }
+        appendLog('GUARD: AI safety check passed');
         await new Promise(r => setTimeout(r, 400));
 
         // Handle 422 - Backend validation failed
