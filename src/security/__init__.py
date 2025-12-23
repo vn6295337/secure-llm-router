@@ -75,6 +75,9 @@ def get_gemini_safety_url():
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     return f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
+# --- Lakera Guard API (Fallback) ---
+LAKERA_API_URL = "https://api.lakera.ai/v2/guard"
+
 # Gemini harm categories (all available categories)
 HARM_CATEGORIES = [
     "HARM_CATEGORY_SEXUALLY_EXPLICIT",
@@ -187,11 +190,104 @@ Category:"""
         }
 
     except requests.exceptions.Timeout:
+        # Fallback to Lakera Guard on timeout
+        return detect_toxicity_lakera(text)
+    except Exception as e:
+        # Fallback to Lakera Guard on any error
+        lakera_result = detect_toxicity_lakera(text)
+        if lakera_result.get("error"):
+            return {
+                "is_toxic": False,
+                "scores": {},
+                "blocked_categories": [],
+                "error": f"Gemini: {str(e)}, Lakera: {lakera_result['error']}"
+            }
+        return lakera_result
+
+
+def detect_toxicity_lakera(text: str) -> dict:
+    """
+    Fallback toxicity detection using Lakera Guard API.
+    Uses LAKERA_API_KEY environment variable for authentication.
+    Returns: {is_toxic: bool, scores: dict, blocked_categories: list, error: str|None}
+    """
+    api_key = os.getenv("LAKERA_API_KEY")
+
+    if not api_key:
         return {
             "is_toxic": False,
             "scores": {},
             "blocked_categories": [],
-            "error": "Gemini API timeout"
+            "error": "LAKERA_API_KEY not configured"
+        }
+
+    try:
+        payload = {
+            "messages": [{"content": text, "role": "user"}]
+        }
+
+        response = requests.post(
+            LAKERA_API_URL,
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            timeout=10
+        )
+
+        if response.status_code != 200:
+            error_detail = ""
+            try:
+                error_detail = response.json().get("error", response.text)
+            except:
+                error_detail = response.text
+            return {
+                "is_toxic": False,
+                "scores": {},
+                "blocked_categories": [],
+                "error": f"Lakera API error {response.status_code}: {error_detail}"
+            }
+
+        data = response.json()
+        blocked_categories = []
+        scores = {}
+
+        # Lakera returns categories with flagged status
+        # Check for flagged content in results
+        results = data.get("results", [])
+        for result in results:
+            categories = result.get("categories", {})
+            for category, flagged in categories.items():
+                if flagged:
+                    blocked_categories.append(f"LAKERA_{category.upper()}")
+                    scores[f"LAKERA_{category.upper()}"] = 1.0
+                else:
+                    scores[f"LAKERA_{category.upper()}"] = 0.0
+
+            # Also check category_scores for more detail
+            category_scores = result.get("category_scores", {})
+            for category, score in category_scores.items():
+                scores[f"LAKERA_{category.upper()}"] = score
+
+        # Check top-level flagged status
+        is_flagged = data.get("flagged", False)
+        if is_flagged and not blocked_categories:
+            blocked_categories.append("LAKERA_FLAGGED")
+
+        return {
+            "is_toxic": is_flagged or len(blocked_categories) > 0,
+            "scores": scores,
+            "blocked_categories": blocked_categories,
+            "error": None
+        }
+
+    except requests.exceptions.Timeout:
+        return {
+            "is_toxic": False,
+            "scores": {},
+            "blocked_categories": [],
+            "error": "Lakera API timeout"
         }
     except Exception as e:
         return {
