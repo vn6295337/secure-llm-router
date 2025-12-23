@@ -69,10 +69,7 @@ async def validate_api_key(api_key: str = Depends(api_key_header)):
 
 
 # --- Perspective API Toxicity Detection ---
-# Uses API_KEY environment variable for Perspective API authentication
-PERSPECTIVE_API_KEY = os.getenv("API_KEY")
 PERSPECTIVE_API_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze"
-TOXICITY_THRESHOLD = float(os.getenv("TOXICITY_THRESHOLD", "0.7"))
 
 # Attributes to check with Perspective API
 PERSPECTIVE_ATTRIBUTES = {
@@ -82,14 +79,20 @@ PERSPECTIVE_ATTRIBUTES = {
     "INSULT": {},
     "PROFANITY": {},
     "THREAT": {},
+    "SEXUALLY_EXPLICIT": {},
 }
 
 def detect_toxicity(text: str) -> dict:
     """
     Detect toxic content using Google's Perspective API.
+    Uses API_KEY environment variable for authentication.
     Returns: {is_toxic: bool, scores: dict, blocked_categories: list, error: str|None}
     """
-    if not PERSPECTIVE_API_KEY:
+    # Read API key at runtime to pick up HF Spaces secrets
+    api_key = os.getenv("API_KEY")
+    toxicity_threshold = float(os.getenv("TOXICITY_THRESHOLD", "0.7"))
+
+    if not api_key:
         return {
             "is_toxic": False,
             "scores": {},
@@ -105,18 +108,23 @@ def detect_toxicity(text: str) -> dict:
         }
 
         response = requests.post(
-            f"{PERSPECTIVE_API_URL}?key={PERSPECTIVE_API_KEY}",
+            f"{PERSPECTIVE_API_URL}?key={api_key}",
             json=payload,
             headers={"Content-Type": "application/json"},
             timeout=5
         )
 
         if response.status_code != 200:
+            error_detail = ""
+            try:
+                error_detail = response.json().get("error", {}).get("message", "")
+            except:
+                pass
             return {
                 "is_toxic": False,
                 "scores": {},
                 "blocked_categories": [],
-                "error": f"Perspective API error: {response.status_code}"
+                "error": f"Perspective API error {response.status_code}: {error_detail}"
             }
 
         data = response.json()
@@ -126,7 +134,7 @@ def detect_toxicity(text: str) -> dict:
         for attr, attr_data in data.get("attributeScores", {}).items():
             score = attr_data.get("summaryScore", {}).get("value", 0)
             scores[attr] = round(score, 3)
-            if score >= TOXICITY_THRESHOLD:
+            if score >= toxicity_threshold:
                 blocked_categories.append(attr)
 
         return {

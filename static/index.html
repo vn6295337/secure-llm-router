@@ -2122,25 +2122,13 @@
           const toxicityData = await toxicityResponse.json();
 
           if (toxicityData.error) {
-            appendLog(`GUARD: Perspective API: ${toxicityData.error} (using fallback)`);
-            // Fallback to static patterns if API fails
-            const unsafePatterns = [
-              { pattern: /how\s+to\s+(make|build|create)\s+(a\s+)?(bomb|explosive|weapon)/i, category: 'violence' },
-              { pattern: /how\s+to\s+(kill|murder|harm|hurt)\s+(someone|a\s+person|people)/i, category: 'violence' },
-              { pattern: /how\s+to\s+(hack|breach|break\s+into)/i, category: 'illegal' },
-              { pattern: /how\s+to\s+(steal|rob|commit\s+fraud)/i, category: 'illegal' },
-              { pattern: /how\s+to\s+(buy|sell|make)\s+(drugs|cocaine|heroin|meth)/i, category: 'illegal' },
-              { pattern: /write\s+(malware|virus|ransomware|trojan)/i, category: 'illegal' },
-              { pattern: /terroris(t|m)|mass\s+shooting/i, category: 'violence' }
-            ];
-            const unsafeMatch = unsafePatterns.find(p => p.pattern.test(customPrompt));
-            if (unsafeMatch) {
-              updatePipelineVisual('input', 'fail');
-              appendLog(`GUARD: ⚠️ Unsafe content detected (${unsafeMatch.category}) - BLOCKED`);
-              metricStatus.textContent = 'Blocked';
-              lastRunData = { scenario: 'custom', final: 'blocked', error: `Unsafe content: ${unsafeMatch.category}` };
-              return;
-            }
+            // If API_KEY not configured or invalid, block the request and show setup instructions
+            updatePipelineVisual('input', 'fail');
+            appendLog(`GUARD: Perspective API error: ${toxicityData.error}`);
+            appendLog('GUARD: Set API_KEY env var with Google Cloud key (Perspective API enabled)');
+            metricStatus.textContent = 'Config Error';
+            lastRunData = { scenario: 'custom', final: 'error', error: toxicityData.error };
+            return;
           } else if (toxicityData.is_toxic) {
             updatePipelineVisual('input', 'fail');
             const categories = toxicityData.blocked_categories.join(', ');
