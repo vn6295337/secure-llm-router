@@ -192,7 +192,7 @@ Category:"""
     except requests.exceptions.Timeout:
         # Fallback to Lakera Guard on timeout
         return detect_toxicity_lakera(text)
-    except Exception as e:
+    except Exception:
         # Fallback to Lakera Guard on any error
         lakera_result = detect_toxicity_lakera(text)
         if lakera_result.get("error"):
@@ -200,7 +200,7 @@ Category:"""
                 "is_toxic": False,
                 "scores": {},
                 "blocked_categories": [],
-                "error": f"Gemini: {str(e)}, Lakera: {lakera_result['error']}"
+                "error": "Safety check unavailable"
             }
         return lakera_result
 

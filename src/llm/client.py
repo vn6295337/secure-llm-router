@@ -57,8 +57,8 @@ class LLMClient:
                             if "text" in part:
                                 return part["text"], None
                 return None, "No text content found in Gemini response."
-            except requests.exceptions.RequestException as e:
-                return None, str(e)
+            except requests.exceptions.RequestException:
+                return None, "Gemini API request failed"
 
         elif provider_name == "groq":
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -70,8 +70,8 @@ class LLMClient:
                 if data and "choices" in data and data["choices"]:
                     return data["choices"][0]["message"]["content"], None
                 return None, "No content found in Groq response."
-            except requests.exceptions.RequestException as e:
-                return None, str(e)
+            except requests.exceptions.RequestException:
+                return None, "Groq API request failed"
 
         elif provider_name == "openrouter":
             url = "https://openrouter.ai/api/v1/chat/completions"
@@ -85,8 +85,8 @@ class LLMClient:
                 if data and "choices" in data and data["choices"]:
                     return data["choices"][0]["message"]["content"], None
                 return None, "No content found in OpenRouter response."
-            except requests.exceptions.RequestException as e:
-                return None, str(e)
+            except requests.exceptions.RequestException:
+                return None, "OpenRouter API request failed"
         else:
             return None, f"Unknown LLM provider: {provider_name}"
 
@@ -98,7 +98,7 @@ class LLMClient:
         cascade_path = []
 
         for provider in self.providers:
-            print(f"Attempting with {provider['name']}...")
+            provider_name = provider["name"]
             start_time = time.perf_counter()
             response_content, error = await self.call_llm_provider(
                 provider_name=provider["name"],
@@ -112,22 +112,21 @@ class LLMClient:
 
             if response_content:
                 cascade_path.append({
-                    "provider": provider["name"],
+                    "provider": provider_name,
                     "model": provider["model"],
                     "status": "success",
                     "reason": None,
                     "latency_ms": latency_ms
                 })
-                return response_content, provider["name"], latency_ms, None, cascade_path
+                return response_content, provider_name, latency_ms, None, cascade_path
             else:
                 cascade_path.append({
-                    "provider": provider["name"],
+                    "provider": provider_name,
                     "model": provider["model"],
                     "status": "failed",
                     "reason": error,
                     "latency_ms": latency_ms
                 })
-                print(f"Provider {provider['name']} failed: {error}")
 
         return None, None, 0, "All LLM providers failed.", cascade_path
 
