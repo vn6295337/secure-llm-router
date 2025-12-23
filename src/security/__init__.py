@@ -289,10 +289,10 @@ def detect_toxicity_lakera(text: str) -> dict:
             "blocked_categories": [],
             "error": "Lakera API timeout"
         }
-    except Exception as e:
+    except Exception:
         return {
             "is_toxic": False,
             "scores": {},
             "blocked_categories": [],
-            "error": str(e)
+            "error": "Lakera API request failed"
         }
