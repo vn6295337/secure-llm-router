@@ -17,7 +17,7 @@ pinned: false
 | Resource | Link |
 |----------|------|
 | Live Demo | [huggingface.co/spaces/vn6295337/Enterprise-AI-Gateway](https://huggingface.co/spaces/vn6295337/Enterprise-AI-Gateway) |
-| Demo Video | [github.com/vn6295337/Enterprise-AI-Gateway/issues/2](http://github.com/vn6295337/Enterprise-AI-Gateway/issues/2) |
+| Demo Video | [github.com/vn6295337/Enterprise-AI-Gateway/issues/4](http://github.com/vn6295337/Enterprise-AI-Gateway/issues/4) |
 | Business User Guide | [BUSINESS_README.md](BUSINESS_README.md) |
 
 ---
